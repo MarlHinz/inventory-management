@@ -2,10 +2,18 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="isOpen && costData" class="modal-overlay" @click="close">
-        <div class="modal-container" @click.stop>
+        <div
+          ref="dialogRef"
+          class="modal-container"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cost-modal-title"
+          tabindex="-1"
+          @click.stop
+        >
           <div class="modal-header">
-            <h3 class="modal-title">{{ costData.month }} Cost Breakdown</h3>
-            <button class="close-button" @click="close">
+            <h3 id="cost-modal-title" class="modal-title">{{ costData.month }} Cost Breakdown</h3>
+            <button class="close-button" type="button" :aria-label="t('common.close')" @click="close">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
@@ -16,7 +24,7 @@
             <div class="cost-summary">
               <div class="summary-card total">
                 <div class="summary-label">Total Costs</div>
-                <div class="summary-value">{{ currencySymbol }}{{ totalCosts.toLocaleString() }}</div>
+                <div class="summary-value">{{ money(totalCosts) }}</div>
               </div>
             </div>
 
@@ -31,7 +39,7 @@
                   </div>
                   <div class="cost-info">
                     <div class="cost-name">Procurement</div>
-                    <div class="cost-amount">{{ currencySymbol }}{{ costData.procurement.toLocaleString() }}</div>
+                    <div class="cost-amount">{{ money(costData.procurement) }}</div>
                   </div>
                 </div>
                 <div class="cost-percentage">{{ getProcurementPercentage() }}% of total</div>
@@ -47,7 +55,7 @@
                   </div>
                   <div class="cost-info">
                     <div class="cost-name">Operational</div>
-                    <div class="cost-amount">{{ currencySymbol }}{{ costData.operational.toLocaleString() }}</div>
+                    <div class="cost-amount">{{ money(costData.operational) }}</div>
                   </div>
                 </div>
                 <div class="cost-percentage">{{ getOperationalPercentage() }}% of total</div>
@@ -63,7 +71,7 @@
                   </div>
                   <div class="cost-info">
                     <div class="cost-name">Labor</div>
-                    <div class="cost-amount">{{ currencySymbol }}{{ costData.labor.toLocaleString() }}</div>
+                    <div class="cost-amount">{{ money(costData.labor) }}</div>
                   </div>
                 </div>
                 <div class="cost-percentage">{{ getLaborPercentage() }}% of total</div>
@@ -78,7 +86,7 @@
                   </div>
                   <div class="cost-info">
                     <div class="cost-name">Overhead</div>
-                    <div class="cost-amount">{{ currencySymbol }}{{ costData.overhead.toLocaleString() }}</div>
+                    <div class="cost-amount">{{ money(costData.overhead) }}</div>
                   </div>
                 </div>
                 <div class="cost-percentage">{{ getOverheadPercentage() }}% of total</div>
@@ -98,8 +106,13 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n'
+import { useModalA11y } from '../composables/useModalA11y'
+import { formatCurrency } from '../utils/currency'
 
-const { currentCurrency } = useI18n()
+const { t, currentCurrency } = useI18n()
+
+// Locale-aware formatting + USD->JPY conversion via shared util (no browser-locale dependence)
+const money = (v) => formatCurrency(v, currentCurrency.value)
 
 const currencySymbol = computed(() => {
   return currentCurrency.value === 'JPY' ? '¥' : '$'
@@ -147,6 +160,8 @@ const getOverheadPercentage = () => {
 const close = () => {
   emit('close')
 }
+
+const { dialogRef } = useModalA11y(() => props.isOpen, close)
 </script>
 
 <style scoped>
@@ -156,7 +171,7 @@ const close = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,12 +180,12 @@ const close = () => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
   max-width: 600px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100dvh - 32px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -181,20 +196,24 @@ const close = () => {
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
   letter-spacing: -0.025em;
+}
+
+.modal-container:focus {
+  outline: none;
 }
 
 .close-button {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.5rem;
   display: flex;
@@ -205,8 +224,8 @@ const close = () => {
 }
 
 .close-button:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .modal-body {
@@ -226,8 +245,8 @@ const close = () => {
 }
 
 .summary-card.total {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent) 100%);
+  color: var(--accent-contrast);
 }
 
 .summary-label {
@@ -257,23 +276,23 @@ const close = () => {
 }
 
 .cost-item.procurement {
-  border-color: #93c5fd;
-  background: #eff6ff;
+  border-color: color-mix(in srgb, var(--info) 16%, transparent);
+  background: color-mix(in srgb, var(--info) 16%, transparent);
 }
 
 .cost-item.operational {
-  border-color: #c4b5fd;
-  background: #f5f3ff;
+  border-color: color-mix(in srgb, var(--chart-6) 16%, transparent);
+  background: color-mix(in srgb, var(--chart-6) 16%, transparent);
 }
 
 .cost-item.labor {
-  border-color: #86efac;
-  background: #f0fdf4;
+  border-color: color-mix(in srgb, var(--success) 16%, transparent);
+  background: color-mix(in srgb, var(--success) 16%, transparent);
 }
 
 .cost-item.overhead {
-  border-color: #fcd34d;
-  background: #fffbeb;
+  border-color: color-mix(in srgb, var(--warning) 16%, transparent);
+  background: color-mix(in srgb, var(--warning) 16%, transparent);
 }
 
 .cost-header {
@@ -294,23 +313,23 @@ const close = () => {
 }
 
 .cost-item.procurement .cost-icon {
-  background: #3b82f6;
-  color: white;
+  background: var(--accent);
+  color: var(--accent-contrast);
 }
 
 .cost-item.operational .cost-icon {
-  background: #8b5cf6;
-  color: white;
+  background: var(--chart-6);
+  color: var(--accent-contrast);
 }
 
 .cost-item.labor .cost-icon {
-  background: #10b981;
-  color: white;
+  background: var(--success);
+  color: var(--accent-contrast);
 }
 
 .cost-item.overhead .cost-icon {
-  background: #f59e0b;
-  color: white;
+  background: var(--warning);
+  color: var(--accent-contrast);
 }
 
 .cost-info {
@@ -319,7 +338,7 @@ const close = () => {
 
 .cost-name {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text);
   font-size: 1rem;
   margin-bottom: 0.25rem;
 }
@@ -327,38 +346,38 @@ const close = () => {
 .cost-amount {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .cost-percentage {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .modal-footer {
   padding: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
 }
 
 .btn-secondary {
   padding: 0.625rem 1.25rem;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   border-radius: 8px;
   font-weight: 500;
   font-size: 0.875rem;
-  color: #334155;
+  color: var(--text);
   cursor: pointer;
   transition: all 0.15s ease;
   font-family: inherit;
 }
 
 .btn-secondary:hover {
-  background: #e2e8f0;
-  border-color: #cbd5e1;
+  background: var(--border);
+  border-color: var(--border-strong);
 }
 
 /* Modal transition animations */

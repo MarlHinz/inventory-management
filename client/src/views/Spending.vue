@@ -47,17 +47,13 @@
         <div class="chart-container">
           <div class="bar-chart">
             <div class="y-axis">
-              <span>{{ currencySymbol }}{{ maxRevenueValue }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.75) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.5) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.25) }}K</span>
-              <span>{{ currencySymbol }}0</span>
+              <span v-for="tick in revenueAxisTicks" :key="tick">{{ formatCurrency(tick) }}</span>
             </div>
             <div class="chart-area">
               <div v-for="month in monthlyRevenue" :key="month.month" class="bar-group-revenue">
                 <div class="revenue-bars">
-                  <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${currencySymbol}${month.revenue.toLocaleString()}`"></div>
-                  <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${currencySymbol}${month.costs.toLocaleString()}`"></div>
+                  <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${formatCurrency(month.revenue)}`"></div>
+                  <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${formatCurrency(month.costs)}`"></div>
                 </div>
                 <span class="bar-label">{{ translateMonth(month.month) }}</span>
               </div>
@@ -80,20 +76,15 @@
         <div class="chart-container">
           <div class="bar-chart">
             <div class="y-axis">
-              <span>{{ currencySymbol }}25K</span>
-              <span>{{ currencySymbol }}20K</span>
-              <span>{{ currencySymbol }}15K</span>
-              <span>{{ currencySymbol }}10K</span>
-              <span>{{ currencySymbol }}5K</span>
-              <span>{{ currencySymbol }}0</span>
+              <span v-for="tick in costAxisTicks" :key="tick">{{ formatCurrency(tick) }}</span>
             </div>
             <div class="chart-area">
               <div v-for="month in monthlySpending" :key="month.month" class="bar-group">
                 <div class="stacked-bar" @click="showCostDetail(month)">
-                  <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${currencySymbol}${month.procurement.toLocaleString()}`"></div>
-                  <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${currencySymbol}${month.operational.toLocaleString()}`"></div>
-                  <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${currencySymbol}${month.labor.toLocaleString()}`"></div>
-                  <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${currencySymbol}${month.overhead.toLocaleString()}`"></div>
+                  <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${formatCurrency(month.procurement)}`"></div>
+                  <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${formatCurrency(month.operational)}`"></div>
+                  <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${formatCurrency(month.labor)}`"></div>
+                  <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${formatCurrency(month.overhead)}`"></div>
                 </div>
                 <span class="bar-label">{{ translateMonth(month.month) }}</span>
               </div>
@@ -112,7 +103,7 @@
             <div v-for="category in categorySpending" :key="category.category" class="category-item">
               <div class="category-info">
                 <div class="category-name">{{ translateCategory(category.category) }}</div>
-                <div class="category-amount">{{ currencySymbol }}{{ category.amount.toLocaleString() }}</div>
+                <div class="category-amount">{{ formatCurrency(category.amount) }}</div>
               </div>
               <div class="category-bar-container">
                 <div class="category-bar" :style="{ width: category.percentage + '%' }"></div>
@@ -140,7 +131,7 @@
                   <th>{{ t('finance.transactions.description') }}</th>
                   <th>{{ t('finance.transactions.vendor') }}</th>
                   <th>{{ t('finance.transactions.date') }}</th>
-                  <th class="text-right">{{ t('finance.transactions.amount') }}</th>
+                  <th class="num">{{ t('finance.transactions.amount') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -150,11 +141,11 @@
                   class="clickable-row"
                   @click="handleTransactionClick(transaction)"
                 >
-                  <td class="transaction-id">{{ transaction.id.toString().padStart(3, '0') }}</td>
+                  <td class="transaction-id mono">{{ transaction.id.toString().padStart(3, '0') }}</td>
                   <td class="transaction-description">{{ transaction.description }}</td>
                   <td class="transaction-vendor">{{ transaction.vendor }}</td>
                   <td class="transaction-date">{{ formatDateShort(transaction.date) }}</td>
-                  <td class="transaction-amount text-right">{{ currencySymbol }}{{ transaction.amount.toLocaleString() }}</td>
+                  <td class="transaction-amount num">{{ formatCurrency(transaction.amount) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -341,10 +332,10 @@ export default {
 
     // Max value for chart scaling
     const maxRevenueValue = computed(() => {
-      const maxRevenue = Math.max(...monthlyRevenue.value.map(m => m.revenue))
-      const maxCost = Math.max(...monthlyRevenue.value.map(m => m.costs))
+      const maxRevenue = Math.max(0, ...monthlyRevenue.value.map(m => m.revenue))
+      const maxCost = Math.max(0, ...monthlyRevenue.value.map(m => m.costs))
       const max = Math.max(maxRevenue, maxCost)
-      return Math.ceil(max / 1000) // Return in K
+      return Math.max(1, Math.ceil(max / 1000)) // Return in K; min 1 so an empty chart has a scale
     })
 
     const loadData = async () => {
@@ -383,9 +374,20 @@ export default {
       return currentCurrency.value === 'JPY' ? '¥' : '$'
     })
 
+    // Axis scale comes from the data (USD); labels go through formatCurrency so they convert to JPY.
+    // Ticks run top to bottom (the y-axis is laid out that way): max, 3/4, 1/2, 1/4, 0.
+    const makeTicks = (max) => [1, 0.75, 0.5, 0.25, 0].map(f => Math.round(max * f))
+    const revenueAxisTicks = computed(() => makeTicks(maxRevenueValue.value * 1000))
+    // Tallest stacked bar, rounded up to a 5K step; floor of 5K avoids a zero-height scale.
+    const costAxisMax = computed(() => {
+      const tallest = Math.max(0, ...monthlySpending.value.map(m =>
+        m.procurement + m.operational + m.labor + m.overhead))
+      return Math.max(5000, Math.ceil(tallest / 5000) * 5000)
+    })
+    const costAxisTicks = computed(() => makeTicks(costAxisMax.value))
+
     const getBarHeight = (value) => {
-      const maxValue = 25000
-      return (value / maxValue) * 100
+      return (value / costAxisMax.value) * 100
     }
 
     const getRevenueBarHeight = (value) => {
@@ -448,8 +450,8 @@ export default {
     }
 
     const handleTransactionClick = (transaction) => {
-      console.log('Transaction clicked:', transaction)
-      alert(`Transaction Details:\n\nID: ${transaction.id}\nDescription: ${transaction.description}\nVendor: ${transaction.vendor}\nDate: ${formatDateShort(transaction.date)}\nAmount: $${transaction.amount.toLocaleString()}`)
+      // Same formatter as the table so the alert matches the selected language/currency
+      alert(`Transaction Details:\n\nID: ${transaction.id}\nDescription: ${transaction.description}\nVendor: ${transaction.vendor}\nDate: ${formatDateShort(transaction.date)}\nAmount: ${formatCurrency(transaction.amount)}`)
     }
 
     const showCostDetail = (monthData) => {
@@ -473,6 +475,8 @@ export default {
       profitMargin,
       monthlyRevenue,
       maxRevenueValue,
+      revenueAxisTicks,
+      costAxisTicks,
       formatCurrency,
       currencySymbol,
       getBarHeight,
@@ -493,41 +497,49 @@ export default {
 
 <style scoped>
 .stat-change {
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
   font-size: 0.875rem;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
+/* Delta pill: status token on a tinted background */
 .stat-change.positive {
-  color: #059669;
+  align-self: flex-start;
+  width: fit-content;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .stat-change.negative {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .change-icon {
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 600;
 }
 
 .chart-card {
-  margin-bottom: 1.75rem;
+  margin-bottom: var(--space-5);
 }
 
 .chart-legend {
   display: flex;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
   font-size: 0.875rem;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
+  gap: var(--space-2);
+  color: var(--text-muted);
 }
 
 .legend-dot {
@@ -536,36 +548,29 @@ export default {
   border-radius: 3px;
 }
 
-.legend-dot.procurement { background: #3b82f6; }
-.legend-dot.operational { background: #8b5cf6; }
-.legend-dot.labor { background: #10b981; }
-.legend-dot.overhead { background: #f59e0b; }
-.legend-dot.revenue-color { background: #0f172a; }
-.legend-dot.cost-color { background: #ef4444; }
+/* Series colors live in one place: reused by legend dots and bars */
+.legend-dot.procurement, .bar-segment.procurement { background: var(--chart-1); }
+.legend-dot.operational, .bar-segment.operational { background: var(--chart-6); }
+.legend-dot.labor, .bar-segment.labor { background: var(--chart-3); }
+.legend-dot.overhead, .bar-segment.overhead { background: var(--chart-4); }
+.legend-dot.revenue-color, .revenue-bar { background: var(--chart-1); }
+.legend-dot.cost-color, .cost-bar { background: var(--chart-5); }
 
 .stats-grid-finance {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
-.revenue-card {
-  border-left: 4px solid #0f172a;
-}
-
-.cost-card {
-  border-left: 4px solid #ef4444;
-}
-
-.profit-card {
-  border-left: 4px solid #3b82f6;
-}
+.revenue-card { border-left: 3px solid var(--chart-1); }
+.cost-card { border-left: 3px solid var(--chart-5); }
+.profit-card { border-left: 3px solid var(--chart-3); }
 
 .stat-meta {
-  margin-top: 0.5rem;
-  font-size: 0.813rem;
-  color: #64748b;
+  margin-top: var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
 .bar-group-revenue {
@@ -580,61 +585,57 @@ export default {
   width: 100%;
   max-width: 80px;
   display: flex;
-  gap: 6px;
+  gap: var(--space-1);
   justify-content: center;
   align-items: flex-end;
   height: 100%;
-  padding-bottom: 2rem;
+  padding-bottom: var(--space-5);
 }
 
 .revenue-bar, .cost-bar {
   width: 50%;
   max-width: 30px;
-  border-radius: 6px 6px 0 0;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: opacity 0.15s ease;
   cursor: pointer;
   min-height: 4px;
 }
 
-.revenue-bar {
-  background: #0f172a;
-}
-
-.cost-bar {
-  background: #ef4444;
-}
-
 .revenue-bar:hover, .cost-bar:hover {
   opacity: 0.8;
-  transform: scaleY(1.05);
 }
 
+/* Chart scrolls inside its card so 12 months never widen the page on phones */
 .chart-container {
-  padding: 1.5rem 0;
+  padding: var(--space-4) 0;
+  overflow-x: auto;
 }
 
 .bar-chart {
   display: flex;
-  gap: 1.5rem;
+  gap: var(--space-4);
   height: 350px;
+  min-width: 480px;
 }
 
 .y-axis {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-right: 1rem;
+  padding-right: var(--space-3);
   font-size: 0.75rem;
-  color: #94a3b8;
-  border-right: 1px solid #e2e8f0;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  border-right: 1px solid var(--border);
 }
 
 .chart-area {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .bar-group {
@@ -652,9 +653,9 @@ export default {
   flex-direction: column-reverse;
   align-items: stretch;
   height: 100%;
-  padding-bottom: 2rem;
+  padding-bottom: var(--space-5);
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .stacked-bar:hover {
@@ -663,51 +664,51 @@ export default {
 
 .bar-segment {
   width: 100%;
-  transition: all 0.3s ease;
+  transition: opacity 0.15s ease;
   cursor: pointer;
   display: block;
 }
 
 .bar-segment:first-child {
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 .bar-segment:last-child {
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
-
-.bar-segment.procurement { background: #3b82f6; }
-.bar-segment.operational { background: #8b5cf6; }
-.bar-segment.labor { background: #10b981; }
-.bar-segment.overhead { background: #f59e0b; }
 
 .bar-segment:hover {
   opacity: 0.8;
 }
 
 .bar-label {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .two-column-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: var(--space-5);
+}
+
+.two-column-grid > .card {
+  min-width: 0;
+  margin-bottom: 0;
 }
 
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-5);
 }
 
 .category-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .category-info {
@@ -718,38 +719,40 @@ export default {
 
 .category-name {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .category-amount {
-  font-weight: 700;
-  color: #2563eb;
+  font-weight: 600;
+  color: var(--text);
   font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .category-bar-container {
   width: 100%;
   height: 8px;
-  background: #f1f5f9;
-  border-radius: 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .category-bar {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 4px;
+  background: var(--chart-1);
+  border-radius: var(--radius-sm);
   transition: width 0.6s ease;
 }
 
 .category-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.813rem;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .percentage {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .change {
@@ -757,11 +760,11 @@ export default {
 }
 
 .change.positive {
-  color: #059669;
+  color: var(--success);
 }
 
 .change.negative {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .transactions-card {
@@ -770,83 +773,34 @@ export default {
 }
 
 .transactions-table-container {
-  overflow-y: auto;
+  overflow: auto;
   max-height: 400px;
 }
 
-.transactions-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.transactions-table thead {
-  position: sticky;
-  top: 0;
-  background: #f8fafc;
-  z-index: 1;
-}
-
-.transactions-table th {
-  text-align: left;
-  padding: 0.625rem 0.75rem;
-  font-weight: 600;
-  color: #475569;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.transactions-table th.text-right {
-  text-align: right;
-}
-
-.transactions-table td {
-  padding: 0.75rem 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 0.875rem;
-}
-
-.transactions-table tbody tr {
+.transactions-table tbody tr.clickable-row {
   cursor: pointer;
-  transition: background-color 0.15s ease;
 }
 
-.transactions-table tbody tr:hover {
-  background: #f8fafc;
-}
-
-.transactions-table tbody tr.clickable-row:hover {
-  background: #eff6ff;
+.transaction-id,
+.transaction-vendor,
+.transaction-date {
+  color: var(--text-muted);
 }
 
 .transaction-id {
-  color: #64748b;
-  font-weight: 500;
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 0.813rem;
-}
-
-.transaction-description {
-  color: #0f172a;
-  font-weight: 500;
-}
-
-.transaction-vendor {
-  color: #64748b;
+  font-size: 0.8125rem;
 }
 
 .transaction-date {
-  color: #64748b;
-  font-size: 0.813rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.transaction-description {
+  font-weight: 500;
 }
 
 .transaction-amount {
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.text-right {
-  text-align: right;
+  font-weight: 600;
 }
 </style>

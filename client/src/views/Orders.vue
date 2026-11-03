@@ -41,12 +41,12 @@
                 <th class="col-status">{{ t('orders.table.status') }}</th>
                 <th class="col-date">{{ t('orders.table.orderDate') }}</th>
                 <th class="col-date">{{ t('orders.table.expectedDelivery') }}</th>
-                <th class="col-value">{{ t('orders.table.totalValue') }}</th>
+                <th class="col-value num">{{ t('orders.table.totalValue') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="order in orders" :key="order.id">
-                <td class="col-order-number"><strong>{{ order.order_number }}</strong></td>
+                <td class="col-order-number mono">{{ order.order_number }}</td>
                 <td class="col-customer">{{ translateCustomerName(order.customer) }}</td>
                 <td class="col-items">
                   <details class="items-details">
@@ -56,7 +56,7 @@
                     <div class="items-dropdown">
                       <div v-for="(item, idx) in order.items" :key="idx" class="item-entry">
                         <span class="item-name">{{ translateProductName(item.name) }}</span>
-                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ currencySymbol }}{{ item.unit_price }}</span>
+                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ money(item.unit_price) }}</span>
                       </div>
                     </div>
                   </details>
@@ -68,11 +68,65 @@
                 </td>
                 <td class="col-date">{{ formatDate(order.order_date) }}</td>
                 <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                <td class="col-value"><strong>{{ currencySymbol }}{{ order.total_value.toLocaleString() }}</strong></td>
+                <td class="col-value num"><strong>{{ money(order.total_value) }}</strong></td>
               </tr>
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- Restocking orders: independent of the global filters and the main loading state -->
+    <div class="card submitted-card">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">{{ t('orders.submittedOrders') }} ({{ submittedOrders.length }})</h3>
+          <p class="card-hint">{{ t('orders.submittedOrdersHint') }}</p>
+        </div>
+      </div>
+      <div v-if="submittedError" class="error">{{ submittedError }}</div>
+      <div v-else-if="submittedOrders.length === 0" class="empty-state">{{ t('orders.noSubmittedOrders') }}</div>
+      <div v-else class="table-container">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th class="col-order-number">{{ t('orders.table.orderNumber') }}</th>
+              <th class="col-items">{{ t('orders.table.items') }}</th>
+              <th class="col-value num">{{ t('orders.table.totalValue') }}</th>
+              <th class="col-date">{{ t('orders.table.orderDate') }}</th>
+              <th class="col-date num">{{ t('orders.table.leadTime') }}</th>
+              <th class="col-date">{{ t('orders.table.expectedDelivery') }}</th>
+              <th class="col-status">{{ t('orders.table.status') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="order in submittedOrders" :key="order.id">
+              <td class="col-order-number mono">{{ order.order_number }}</td>
+              <td class="col-items">
+                <details class="items-details">
+                  <summary class="items-summary">
+                    {{ t('orders.itemsCount', { count: order.items.length }) }}
+                  </summary>
+                  <div class="items-dropdown">
+                    <div v-for="item in order.items" :key="item.sku" class="item-entry">
+                      <span class="item-name">{{ translateProductName(item.name) }}</span>
+                      <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ money(item.unit_cost) }}</span>
+                    </div>
+                  </div>
+                </details>
+              </td>
+              <td class="col-value num"><strong>{{ money(order.total_value) }}</strong></td>
+              <td class="col-date">{{ formatDate(order.order_date) }}</td>
+              <td class="col-date num">{{ order.lead_time_days }}</td>
+              <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
+              <td class="col-status">
+                <span :class="['badge', getOrderStatusClass(order.status)]">
+                  {{ t(`status.${order.status.toLowerCase()}`) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -83,6 +137,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
+import { formatCurrencyWithDecimals } from '../utils/currency'
 
 export default {
   name: 'Orders',
@@ -95,6 +150,8 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const orders = ref([])
+    const submittedOrders = ref([])
+    const submittedError = ref(null)
 
     // Use shared filters
     const {
@@ -124,6 +181,17 @@ export default {
       }
     }
 
+    // Shared util: app-locale grouping and USD->JPY conversion, 2 decimals for USD
+    const money = (v) => formatCurrencyWithDecimals(v, currentCurrency.value, 2)
+
+    const loadSubmittedOrders = async () => {
+      try {
+        submittedOrders.value = await api.getSubmittedOrders()
+      } catch (err) {
+        submittedError.value = 'Failed to load submitted orders: ' + err.message
+      }
+    }
+
     // Watch for filter changes and reload data
     watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], () => {
       loadOrders()
@@ -138,7 +206,8 @@ export default {
         'Delivered': 'success',
         'Shipped': 'info',
         'Processing': 'warning',
-        'Backordered': 'danger'
+        'Backordered': 'danger',
+        'Submitted': 'info'
       }
       return statusMap[status] || 'info'
     }
@@ -153,17 +222,23 @@ export default {
       })
     }
 
-    onMounted(loadOrders)
+    onMounted(() => {
+      loadOrders()
+      loadSubmittedOrders()
+    })
 
     return {
       t,
       loading,
       error,
       orders,
+      submittedOrders,
+      submittedError,
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
       currencySymbol,
+      money,
       translateProductName,
       translateCustomerName
     }
@@ -172,35 +247,33 @@ export default {
 </script>
 
 <style scoped>
-/* Fixed table layout to prevent column shifting */
+/* Auto table layout (no fixed column widths); the wrapper scrolls horizontally on narrow screens.
+   nowrap keeps order ids, dates and amounts on one line instead of wrapping at 768px. */
 .orders-table {
-  table-layout: fixed;
   width: 100%;
 }
 
-/* Column widths */
-.col-order-number {
-  width: 130px;
-}
-
-.col-customer {
-  width: 180px;
-}
-
-.col-items {
-  width: 200px;
-}
-
+.col-order-number,
+.col-date,
+.col-value,
 .col-status {
-  width: 130px;
+  white-space: nowrap;
 }
 
-.col-date {
-  width: 140px;
+.submitted-card {
+  margin-top: var(--space-5);
 }
 
-.col-value {
-  width: 120px;
+.card-hint {
+  margin: var(--space-1) 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.empty-state {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
 }
 
 /* Items details styling */
@@ -210,11 +283,12 @@ export default {
 
 .items-summary {
   cursor: pointer;
-  color: #3b82f6;
+  color: var(--accent);
   font-weight: 500;
   list-style: none;
   user-select: none;
   display: inline-block;
+  white-space: nowrap;
 }
 
 .items-summary::-webkit-details-marker {
@@ -222,9 +296,9 @@ export default {
 }
 
 .items-summary::before {
-  content: '▶';
+  content: 'B6';
   display: inline-block;
-  margin-right: 0.375rem;
+  margin-right: var(--space-1);
   font-size: 0.75rem;
   transition: transform 0.2s;
 }
@@ -234,32 +308,32 @@ export default {
 }
 
 .items-summary:hover {
-  color: #2563eb;
+  color: var(--accent-hover);
   text-decoration: underline;
 }
 
-/* Dropdown container */
+/* Dropdown container: width is content-driven but capped so it never exceeds the viewport */
 .items-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 0.5rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 0.75rem;
+  margin-top: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-3);
   z-index: 10;
-  min-width: 300px;
-  max-width: 400px;
+  width: max-content;
+  max-width: min(280px, 70vw);
 }
 
 .item-entry {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
 }
 
 .item-entry:last-child {
@@ -269,11 +343,11 @@ export default {
 .item-name {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .item-meta {
-  font-size: 0.813rem;
-  color: #64748b;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 </style>

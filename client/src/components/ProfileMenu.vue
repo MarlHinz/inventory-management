@@ -1,9 +1,10 @@
 <template>
-  <div class="profile-menu">
+  <div class="profile-menu" @focusout="handleFocusOut">
     <button
       class="profile-button"
+      aria-haspopup="true"
+      :aria-expanded="isDropdownOpen"
       @click="toggleDropdown"
-      @blur="handleBlur"
     >
       <div class="avatar">
         {{ getInitials(currentUser.name) }}
@@ -36,7 +37,7 @@
 
       <button
         class="dropdown-item"
-        @mousedown.prevent="showProfileDetails"
+        @mousedown.prevent @click="showProfileDetails"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
           <path d="M9 9C10.6569 9 12 7.65685 12 6C12 4.34315 10.6569 3 9 3C7.34315 3 6 4.34315 6 6C6 7.65685 7.34315 9 9 9Z" stroke="currentColor" stroke-width="1.5"/>
@@ -47,7 +48,7 @@
 
       <button
         class="dropdown-item"
-        @mousedown.prevent="showTasks"
+        @mousedown.prevent @click="showTasks"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
           <path d="M15 3H3C2.44772 3 2 3.44772 2 4V14C2 14.5523 2.44772 15 3 15H15C15.5523 15 16 14.5523 16 14V4C16 3.44772 15.5523 3 15 3Z" stroke="currentColor" stroke-width="1.5"/>
@@ -61,7 +62,7 @@
 
       <button
         class="dropdown-item logout"
-        @mousedown.prevent="handleLogout"
+        @mousedown.prevent @click="handleLogout"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
           <path d="M7 15H4C3.44772 15 3 14.5523 3 14V4C3 3.44772 3.44772 3 4 3H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -92,11 +93,10 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value
 }
 
-const handleBlur = () => {
-  // Delay to allow mousedown events on dropdown items to fire first
-  setTimeout(() => {
-    isDropdownOpen.value = false
-  }, 200)
+// Close only when focus leaves the whole menu, so keyboard users can Tab from the toggle to an item.
+// mousedown.prevent on items keeps focus on the toggle for mouse clicks (and Safari), so click still fires.
+const handleFocusOut = (e) => {
+  if (!e.currentTarget.contains(e.relatedTarget)) isDropdownOpen.value = false
 }
 
 const showProfileDetails = () => {
@@ -124,26 +124,28 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  padding: 0.5rem 0.875rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  padding: var(--space-1) var(--space-3);
+  width: 100%;
+  min-height: 40px;
+  background: color-mix(in srgb, var(--sidebar-active) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sidebar-active) 12%, transparent);
+  color: var(--sidebar-active);
+  border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
 }
 
 .profile-button:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: color-mix(in srgb, var(--sidebar-active) 14%, transparent);
 }
 
 .avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: var(--accent-contrast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -155,11 +157,17 @@ const handleLogout = () => {
 .profile-name {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #0f172a;
+  color: var(--sidebar-active);
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chevron {
-  color: #64748b;
+  color: var(--sidebar-text);
   transition: transform 0.2s ease;
 }
 
@@ -169,13 +177,15 @@ const handleLogout = () => {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  /* Sidebar footer sits at the bottom of the viewport: open upward and span the footer width so it never leaves the screen */
+  bottom: calc(100% + 8px);
+  left: 0;
   right: 0;
-  min-width: 280px;
-  background: white;
-  border: 1px solid #e2e8f0;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   overflow: hidden;
 }
@@ -185,15 +195,15 @@ const handleLogout = () => {
   display: flex;
   gap: 0.875rem;
   align-items: center;
-  background: #f8fafc;
+  background: var(--surface-2);
 }
 
 .avatar-large {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: var(--accent-contrast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,14 +220,14 @@ const handleLogout = () => {
 
 .user-name {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text);
   font-size: 0.938rem;
   margin-bottom: 0.25rem;
 }
 
 .user-email {
   font-size: 0.813rem;
-  color: #64748b;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -225,7 +235,7 @@ const handleLogout = () => {
 
 .dropdown-divider {
   height: 1px;
-  background: #e2e8f0;
+  background: var(--border);
   margin: 0.5rem 0;
 }
 
@@ -243,34 +253,34 @@ const handleLogout = () => {
   font-family: inherit;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #334155;
+  color: var(--text);
 }
 
 .dropdown-item:hover {
-  background: #f8fafc;
+  background: var(--surface-2);
 }
 
 .dropdown-item svg {
-  color: #64748b;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .dropdown-item.logout {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .dropdown-item.logout svg {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .dropdown-item.logout:hover {
-  background: #fef2f2;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
 
 .task-badge {
   margin-left: auto;
-  background: #2563eb;
-  color: white;
+  background: var(--accent);
+  color: var(--accent-contrast);
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.125rem 0.5rem;
