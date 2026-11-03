@@ -1,9 +1,10 @@
 <template>
-  <div class="language-switcher">
+  <div class="language-switcher" @focusout="handleFocusOut">
     <button
       class="language-button"
+      aria-haspopup="true"
+      :aria-expanded="isDropdownOpen"
       @click="toggleDropdown"
-      @blur="handleBlur"
     >
       <svg
         width="20"
@@ -36,7 +37,7 @@
         :key="locale"
         class="dropdown-item"
         :class="{ active: currentLocale === locale }"
-        @mousedown.prevent="selectLanguage(locale)"
+        @mousedown.prevent @click="selectLanguage(locale)"
       >
         <span class="language-name">{{ getLanguageName(locale) }}</span>
         <svg
@@ -75,11 +76,10 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value
 }
 
-const handleBlur = () => {
-  // Delay to allow mousedown events on dropdown items to fire first
-  setTimeout(() => {
-    isDropdownOpen.value = false
-  }, 200)
+// Close only when focus leaves the whole menu, so keyboard users can Tab from the toggle to an item.
+// mousedown.prevent on items keeps focus on the toggle for mouse clicks (and Safari), so click still fires.
+const handleFocusOut = (e) => {
+  if (!e.currentTarget.contains(e.relatedTarget)) isDropdownOpen.value = false
 }
 
 const selectLanguage = (locale) => {

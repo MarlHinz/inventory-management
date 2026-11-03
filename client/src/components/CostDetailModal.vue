@@ -2,10 +2,18 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="isOpen && costData" class="modal-overlay" @click="close">
-        <div class="modal-container" @click.stop>
+        <div
+          ref="dialogRef"
+          class="modal-container"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cost-modal-title"
+          tabindex="-1"
+          @click.stop
+        >
           <div class="modal-header">
-            <h3 class="modal-title">{{ costData.month }} Cost Breakdown</h3>
-            <button class="close-button" @click="close">
+            <h3 id="cost-modal-title" class="modal-title">{{ costData.month }} Cost Breakdown</h3>
+            <button class="close-button" type="button" :aria-label="t('common.close')" @click="close">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
@@ -98,9 +106,10 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n'
+import { useModalA11y } from '../composables/useModalA11y'
 import { formatCurrency } from '../utils/currency'
 
-const { currentCurrency } = useI18n()
+const { t, currentCurrency } = useI18n()
 
 // Locale-aware formatting + USD->JPY conversion via shared util (no browser-locale dependence)
 const money = (v) => formatCurrency(v, currentCurrency.value)
@@ -151,6 +160,8 @@ const getOverheadPercentage = () => {
 const close = () => {
   emit('close')
 }
+
+const { dialogRef } = useModalA11y(() => props.isOpen, close)
 </script>
 
 <style scoped>
@@ -193,6 +204,10 @@ const close = () => {
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.025em;
+}
+
+.modal-container:focus {
+  outline: none;
 }
 
 .close-button {

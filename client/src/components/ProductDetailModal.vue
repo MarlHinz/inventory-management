@@ -2,10 +2,18 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="isOpen && product" class="modal-overlay" @click="close">
-        <div class="modal-container" @click.stop>
+        <div
+          ref="dialogRef"
+          class="modal-container"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="product-modal-title"
+          tabindex="-1"
+          @click.stop
+        >
           <div class="modal-header">
-            <h3 class="modal-title">Product Details</h3>
-            <button class="close-button" @click="close">
+            <h3 id="product-modal-title" class="modal-title">Product Details</h3>
+            <button class="close-button" type="button" :aria-label="t('common.close')" @click="close">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
@@ -88,9 +96,10 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n'
+import { useModalA11y } from '../composables/useModalA11y'
 import { formatCurrency } from '../utils/currency'
 
-const { currentCurrency } = useI18n()
+const { t, currentCurrency } = useI18n()
 
 const currencySymbol = computed(() => {
   return currentCurrency.value === 'JPY' ? '¥' : '$'
@@ -112,6 +121,8 @@ const emit = defineEmits(['close'])
 const close = () => {
   emit('close')
 }
+
+const { dialogRef } = useModalA11y(() => props.isOpen, close)
 
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A'
@@ -171,6 +182,10 @@ const getStockBadgeClass = (stockLevel) => {
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.025em;
+}
+
+.modal-container:focus {
+  outline: none;
 }
 
 .close-button {
