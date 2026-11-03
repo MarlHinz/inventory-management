@@ -77,20 +77,20 @@
               <tr>
                 <th>{{ t('demand.table.sku') }}</th>
                 <th>{{ t('demand.table.itemName') }}</th>
-                <th>{{ t('demand.table.currentDemand') }}</th>
-                <th>{{ t('demand.table.forecastedDemand') }}</th>
-                <th>{{ t('demand.table.change') }}</th>
+                <th class="num">{{ t('demand.table.currentDemand') }}</th>
+                <th class="num">{{ t('demand.table.forecastedDemand') }}</th>
+                <th class="num">{{ t('demand.table.change') }}</th>
                 <th>{{ t('demand.table.trend') }}</th>
                 <th>{{ t('demand.table.period') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="forecast in forecasts" :key="forecast.id">
-                <td><strong>{{ forecast.item_sku }}</strong></td>
+                <td class="mono">{{ forecast.item_sku }}</td>
                 <td>{{ forecast.item_name }}</td>
-                <td>{{ forecast.current_demand }}</td>
-                <td><strong>{{ forecast.forecasted_demand }}</strong></td>
-                <td>
+                <td class="num">{{ forecast.current_demand }}</td>
+                <td class="num"><strong>{{ forecast.forecasted_demand }}</strong></td>
+                <td class="num">
                   <span :style="{ color: getChangeColor(forecast) }">
                     {{ getChangePercent(forecast) }}%
                   </span>
@@ -181,12 +181,12 @@ export default {
 
       // If change is within ±2%, consider it stable and show blue
       if (changePercent <= 2) {
-        return '#3b82f6' // Blue for stable
+        return 'var(--accent)' // stable
       }
 
-      if (change > 0) return '#10b981' // Green for increasing
-      if (change < 0) return '#ef4444' // Red for decreasing
-      return '#3b82f6' // Blue for no change
+      if (change > 0) return 'var(--success)' // increasing
+      if (change < 0) return 'var(--danger)' // decreasing
+      return 'var(--accent)' // no change
     }
 
     const translatePeriod = (period) => {
@@ -226,42 +226,38 @@ export default {
 <style scoped>
 .demand-trend-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
 .trend-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 1.5rem;
-  transition: all 0.2s ease;
+  --c: var(--accent); /* per-card status color, drives border and icon tint */
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--c);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  min-width: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .trend-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow);
 }
 
-.increasing-card {
-  border-left: 4px solid #10b981;
-}
-
-.stable-card {
-  border-left: 4px solid #3b82f6;
-}
-
-.decreasing-card {
-  border-left: 4px solid #ef4444;
-}
+.increasing-card { --c: var(--success); }
+.stable-card { --c: var(--accent); }
+.decreasing-card { --c: var(--danger); }
 
 .trend-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f1f5f9;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
 }
 
 .trend-icon {
@@ -270,100 +266,74 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: var(--radius);
   font-size: 1.75rem;
   font-weight: 700;
   flex-shrink: 0;
-}
-
-.increasing-card .trend-icon {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.stable-card .trend-icon {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-.decreasing-card .trend-icon {
-  background: #fee2e2;
-  color: #dc2626;
+  background: color-mix(in srgb, var(--c) 14%, transparent);
+  color: var(--c);
 }
 
 .trend-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .trend-count {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-top: 0.25rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: var(--space-1);
+  font-variant-numeric: tabular-nums;
 }
 
 .trend-items {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-2);
 }
 
 .trend-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: #f8fafc;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-.trend-item:hover {
-  background: #f1f5f9;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
 }
 
 .item-name {
   font-size: 0.875rem;
-  color: #0f172a;
+  color: var(--text);
   font-weight: 500;
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-right: 1rem;
+  margin-right: var(--space-4);
 }
 
 .item-change {
-  font-size: 0.813rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   flex-shrink: 0;
-}
-
-.increasing-card .item-change {
-  color: #059669;
-}
-
-.stable-card .item-change {
-  color: #3b82f6;
-}
-
-.decreasing-card .item-change {
-  color: #dc2626;
+  color: var(--c);
+  font-variant-numeric: tabular-nums;
 }
 
 .item-change.neutral {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .more-items {
-  font-size: 0.813rem;
-  color: #64748b;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
   font-style: italic;
   text-align: center;
-  padding: 0.5rem;
+  padding: var(--space-2);
 }
 </style>

@@ -97,24 +97,25 @@ const selectLanguage = (locale) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  padding: var(--space-1) var(--space-3);
+  width: 100%;
+  min-height: 40px;
+  background: color-mix(in srgb, var(--sidebar-active) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sidebar-active) 12%, transparent);
+  border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
   font-size: 0.875rem;
-  color: #334155;
+  color: var(--sidebar-active);
 }
 
 .language-button:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: color-mix(in srgb, var(--sidebar-active) 14%, transparent);
 }
 
 .globe-icon {
-  color: #64748b;
+  color: var(--sidebar-text);
   flex-shrink: 0;
 }
 
@@ -123,9 +124,10 @@ const selectLanguage = (locale) => {
 }
 
 .chevron {
-  color: #64748b;
+  color: var(--sidebar-text);
   transition: transform 0.2s ease;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .chevron-open {
@@ -134,13 +136,15 @@ const selectLanguage = (locale) => {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  /* Sidebar footer sits at the bottom of the viewport: open upward and span the footer width so it never leaves the screen */
+  bottom: calc(100% + 8px);
+  left: 0;
   right: 0;
-  min-width: 160px;
-  background: white;
-  border: 1px solid #e2e8f0;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   overflow: hidden;
 }
@@ -160,16 +164,16 @@ const selectLanguage = (locale) => {
   font-family: inherit;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #334155;
+  color: var(--text);
 }
 
 .dropdown-item:hover {
-  background: #f8fafc;
+  background: var(--surface-2);
 }
 
 .dropdown-item.active {
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .language-name {
@@ -177,7 +181,7 @@ const selectLanguage = (locale) => {
 }
 
 .check-icon {
-  color: #2563eb;
+  color: var(--accent);
   flex-shrink: 0;
 }
 </style>

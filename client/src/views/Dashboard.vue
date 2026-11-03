@@ -15,7 +15,7 @@
             <div class="kpi-header">
               <span class="kpi-label">{{ t('dashboard.kpi.inventoryTurnover') }}</span>
             </div>
-            <div class="kpi-value">4.2</div>
+            <div class="kpi-value num-tab">4.2</div>
             <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: 4.5 (-6.67%)</div>
             <div class="kpi-progress-bar">
               <div class="kpi-progress" style="width: 93.33%"></div>
@@ -26,7 +26,7 @@
             <div class="kpi-header">
               <span class="kpi-label">{{ t('dashboard.kpi.ordersFulfilled') }}</span>
             </div>
-            <div class="kpi-value">{{ ordersData.fulfilled }}</div>
+            <div class="kpi-value num-tab">{{ ordersData.fulfilled }}</div>
             <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: {{ ordersData.goal }} ({{ calculatePercentage(ordersData.fulfilled, ordersData.goal) }}%)</div>
             <div class="kpi-progress-bar">
               <div class="kpi-progress" :style="{ width: calculatePercentage(ordersData.fulfilled, ordersData.goal) + '%' }"></div>
@@ -37,7 +37,7 @@
             <div class="kpi-header">
               <span class="kpi-label">{{ t('dashboard.kpi.orderFillRate') }}</span>
             </div>
-            <div class="kpi-value">{{ fillRate }}%</div>
+            <div class="kpi-value num-tab">{{ fillRate }}%</div>
             <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: 95% ({{ fillRate - 95 > 0 ? '+' : '' }}{{ (fillRate - 95).toFixed(2) }}%)</div>
             <div class="kpi-progress-bar">
               <div class="kpi-progress success" :style="{ width: (fillRate / 95 * 100) + '%' }"></div>
@@ -48,7 +48,7 @@
             <div class="kpi-header">
               <span class="kpi-label">{{ t(selectedPeriod === 'all' ? 'dashboard.kpi.revenueYTD' : 'dashboard.kpi.revenueMTD') }}</span>
             </div>
-            <div class="kpi-value">{{ formatCurrency(Math.round(summary.total_orders_value), selectedCurrency) }}</div>
+            <div class="kpi-value num-tab">{{ formatCurrency(Math.round(summary.total_orders_value), selectedCurrency) }}</div>
             <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: {{ formatCurrency(revenueGoal, selectedCurrency) }} ({{ summary.total_orders_value > revenueGoal ? '+' : '' }}{{ ((summary.total_orders_value / revenueGoal - 1) * 100).toFixed(1) }}%)</div>
             <div class="kpi-progress-bar">
               <div class="kpi-progress" :style="{ width: Math.min((summary.total_orders_value / revenueGoal * 100), 100) + '%' }"></div>
@@ -59,7 +59,7 @@
             <div class="kpi-header">
               <span class="kpi-label">{{ t('dashboard.kpi.avgProcessingTime') }}</span>
             </div>
-            <div class="kpi-value">2.8</div>
+            <div class="kpi-value num-tab">2.8</div>
             <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: 3.0 (-6.67%)</div>
             <div class="kpi-progress-bar">
               <div class="kpi-progress success" style="width: 93.33%"></div>
@@ -85,19 +85,19 @@
               <!-- Left: Donut Chart -->
               <div class="order-health-chart">
                 <svg viewBox="0 0 200 200" class="donut-svg-compact">
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="#e2e8f0" stroke-width="25"/>
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="#10b981" stroke-width="25"
+                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--surface-2)" stroke-width="25"/>
+                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--success)" stroke-width="25"
                     :stroke-dasharray="`${getCircleSegment(statusData.delivered)} 408`"
                     stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="#3b82f6" stroke-width="25"
+                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--info)" stroke-width="25"
                     :stroke-dasharray="`${getCircleSegment(statusData.shipped)} 408`"
                     :stroke-dashoffset="`-${getCircleSegment(statusData.delivered)}`"
                     transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="#f59e0b" stroke-width="25"
+                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--warning)" stroke-width="25"
                     :stroke-dasharray="`${getCircleSegment(statusData.processing)} 408`"
                     :stroke-dashoffset="`-${getCircleSegment(statusData.delivered) + getCircleSegment(statusData.shipped)}`"
                     transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="#ef4444" stroke-width="25"
+                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--danger)" stroke-width="25"
                     :stroke-dasharray="`${getCircleSegment(statusData.backordered)} 408`"
                     :stroke-dashoffset="`-${getCircleSegment(statusData.delivered) + getCircleSegment(statusData.shipped) + getCircleSegment(statusData.processing)}`"
                     transform="rotate(-90 100 100)"/>
@@ -105,10 +105,10 @@
                   <text x="100" y="120" text-anchor="middle" class="donut-center-value">{{ orderHealthMetrics.totalOrders }}</text>
                 </svg>
                 <div class="donut-legend-compact">
-                  <div class="legend-item-compact"><span class="legend-dot" style="background: #10b981"></span>{{ t('status.delivered') }}</div>
-                  <div class="legend-item-compact"><span class="legend-dot" style="background: #3b82f6"></span>{{ t('status.shipped') }}</div>
-                  <div class="legend-item-compact"><span class="legend-dot" style="background: #f59e0b"></span>{{ t('status.processing') }}</div>
-                  <div class="legend-item-compact"><span class="legend-dot" style="background: #ef4444"></span>{{ t('status.backordered') }}</div>
+                  <div class="legend-item-compact"><span class="legend-dot" style="background: var(--success)"></span>{{ t('status.delivered') }}</div>
+                  <div class="legend-item-compact"><span class="legend-dot" style="background: var(--info)"></span>{{ t('status.shipped') }}</div>
+                  <div class="legend-item-compact"><span class="legend-dot" style="background: var(--warning)"></span>{{ t('status.processing') }}</div>
+                  <div class="legend-item-compact"><span class="legend-dot" style="background: var(--danger)"></span>{{ t('status.backordered') }}</div>
                 </div>
               </div>
 
@@ -116,21 +116,21 @@
               <div class="order-health-metrics">
                 <div class="health-metric">
                   <div class="health-metric-label">{{ t('dashboard.orderHealth.revenue') }}</div>
-                  <div class="health-metric-value">{{ formatCurrency(orderHealthMetrics.totalValue, selectedCurrency) }}</div>
+                  <div class="health-metric-value num-tab">{{ formatCurrency(orderHealthMetrics.totalValue, selectedCurrency) }}</div>
                 </div>
                 <div class="health-metric">
                   <div class="health-metric-label">{{ t('dashboard.orderHealth.avgOrderValue') }}</div>
-                  <div class="health-metric-value">{{ formatCurrency(orderHealthMetrics.avgOrderValue, selectedCurrency) }}</div>
+                  <div class="health-metric-value num-tab">{{ formatCurrency(orderHealthMetrics.avgOrderValue, selectedCurrency) }}</div>
                 </div>
                 <div class="health-metric">
                   <div class="health-metric-label">{{ t('dashboard.orderHealth.onTimeRate') }}</div>
-                  <div class="health-metric-value" :class="{ 'metric-good': orderHealthMetrics.onTimeRate >= 90, 'metric-warning': orderHealthMetrics.onTimeRate < 90 && orderHealthMetrics.onTimeRate >= 75, 'metric-bad': orderHealthMetrics.onTimeRate < 75 }">
+                  <div class="health-metric-value num-tab" :class="{ 'metric-good': orderHealthMetrics.onTimeRate >= 90, 'metric-warning': orderHealthMetrics.onTimeRate < 90 && orderHealthMetrics.onTimeRate >= 75, 'metric-bad': orderHealthMetrics.onTimeRate < 75 }">
                     {{ orderHealthMetrics.onTimeRate.toFixed(1) }}%
                   </div>
                 </div>
                 <div class="health-metric">
                   <div class="health-metric-label">{{ t('dashboard.orderHealth.avgFulfillmentDays') }}</div>
-                  <div class="health-metric-value">{{ orderHealthMetrics.avgFulfillmentDays.toFixed(1) }}</div>
+                  <div class="health-metric-value num-tab">{{ orderHealthMetrics.avgFulfillmentDays.toFixed(1) }}</div>
                 </div>
               </div>
             </div>
@@ -175,10 +175,10 @@
                   <th>{{ t('dashboard.inventoryShortages.orderId') }}</th>
                   <th>{{ t('dashboard.inventoryShortages.sku') }}</th>
                   <th>{{ t('dashboard.inventoryShortages.itemName') }}</th>
-                  <th>{{ t('dashboard.inventoryShortages.quantityNeeded') }}</th>
-                  <th>{{ t('dashboard.inventoryShortages.quantityAvailable') }}</th>
+                  <th class="num">{{ t('dashboard.inventoryShortages.quantityNeeded') }}</th>
+                  <th class="num">{{ t('dashboard.inventoryShortages.quantityAvailable') }}</th>
                   <th>{{ t('dashboard.inventoryShortages.shortage') }}</th>
-                  <th>{{ t('dashboard.inventoryShortages.daysDelayed') }}</th>
+                  <th class="num">{{ t('dashboard.inventoryShortages.daysDelayed') }}</th>
                   <th>{{ t('dashboard.inventoryShortages.priority') }}</th>
                   <th>Actions</th>
                 </tr>
@@ -188,22 +188,22 @@
                   v-for="item in backlogItems"
                   :key="item.id"
                 >
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;"><strong>{{ item.order_id }}</strong></td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;"><strong>{{ item.item_sku }}</strong></td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">{{ translateProductName(item.item_name) }}</td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">{{ item.quantity_needed }}</td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">{{ item.quantity_available }}</td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">
+                  <td @click="showBacklogDetail(item)" class="clickable mono"><strong>{{ item.order_id }}</strong></td>
+                  <td @click="showBacklogDetail(item)" class="clickable mono"><strong>{{ item.item_sku }}</strong></td>
+                  <td @click="showBacklogDetail(item)" class="clickable">{{ translateProductName(item.item_name) }}</td>
+                  <td @click="showBacklogDetail(item)" class="clickable num">{{ item.quantity_needed }}</td>
+                  <td @click="showBacklogDetail(item)" class="clickable num">{{ item.quantity_available }}</td>
+                  <td @click="showBacklogDetail(item)" class="clickable">
                     <span class="badge danger">
                       {{ Math.abs(item.quantity_needed - item.quantity_available) }} {{ t('dashboard.inventoryShortages.unitsShort') }}
                     </span>
                   </td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">
-                    <span :style="{ color: item.days_delayed > 7 ? '#ef4444' : '#f59e0b', fontWeight: 600 }">
+                  <td @click="showBacklogDetail(item)" class="clickable num">
+                    <span :style="{ color: item.days_delayed > 7 ? 'var(--danger)' : 'var(--warning)', fontWeight: 600 }">
                       {{ item.days_delayed }} {{ t('dashboard.inventoryShortages.days') }}
                     </span>
                   </td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">
+                  <td @click="showBacklogDetail(item)" class="clickable">
                     <span :class="['badge', item.priority]">
                       {{ translatePriority(item.priority) }}
                     </span>
@@ -212,14 +212,14 @@
                     <button
                       v-if="!item.purchase_order_id"
                       @click.stop="openPOModal(item)"
-                      class="po-button create"
+                      class="btn btn-primary po-button"
                     >
                       Create PO
                     </button>
                     <button
                       v-else
                       @click.stop="viewPO(item)"
-                      class="po-button view"
+                      class="btn btn-secondary po-button"
                     >
                       View PO
                     </button>
@@ -242,8 +242,8 @@
                   <th>{{ t('dashboard.topProducts.product') }}</th>
                   <th>{{ t('dashboard.topProducts.sku') }}</th>
                   <th>{{ t('dashboard.topProducts.category') }}</th>
-                  <th>{{ t('dashboard.topProducts.unitsOrdered') }}</th>
-                  <th>{{ t('dashboard.topProducts.revenue') }}</th>
+                  <th class="num">{{ t('dashboard.topProducts.unitsOrdered') }}</th>
+                  <th class="num">{{ t('dashboard.topProducts.revenue') }}</th>
                   <th>{{ t('dashboard.topProducts.firstOrder') }}</th>
                   <th>{{ t('dashboard.topProducts.stockStatus') }}</th>
                 </tr>
@@ -256,10 +256,10 @@
                   @click="showProductDetail(item)"
                 >
                   <td><strong>{{ translateProductName(item.name) }}</strong></td>
-                  <td>{{ item.sku }}</td>
+                  <td class="mono">{{ item.sku }}</td>
                   <td>{{ translateCategory(item.category) }}</td>
-                  <td>{{ item.unitsOrdered }}</td>
-                  <td><strong>{{ formatCurrency(item.revenue, selectedCurrency) }}</strong></td>
+                  <td class="num">{{ item.unitsOrdered }}</td>
+                  <td class="num"><strong>{{ formatCurrency(item.revenue, selectedCurrency) }}</strong></td>
                   <td>{{ formatDate(item.firstOrderDate) }}</td>
                   <td>
                     <span :class="['badge', getStockBadge(item.stockLevel)]">
@@ -408,8 +408,8 @@ export default {
       // Filter inventory items to only include those with orders in the selected period
       const categoryMap = {}
 
-      // Use a single neutral slate/gray color for all categories
-      const singleColor = '#64748b' // Neutral slate gray color
+      // Single accent color for all categories
+      const singleColor = 'var(--chart-1)' // token string so the bar re-themes automatically
 
       // Get SKUs from orders in the filtered time period
       const orderedSkus = new Set()
@@ -727,144 +727,113 @@ export default {
 </script>
 
 <style scoped>
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
+/* Mobile-first. Breakpoints: 640px, 1024px. Colors come from tokens only. */
+.dashboard { min-width: 0; }
 
-.header-meta {
-  font-size: 0.813rem;
-  color: #64748b;
-}
+.num-tab { font-variant-numeric: tabular-nums; }
+.clickable { cursor: pointer; }
 
-.kpi-section {
-  margin-bottom: 1.5rem;
-}
+.kpi-section { margin-bottom: var(--space-5); }
 
 .section-title {
-  font-size: 1rem;
+  font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-4);
 }
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-4);
 }
 
 .kpi-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  min-width: 0;
 }
 
-.kpi-header {
-  margin-bottom: 0.75rem;
-}
+.kpi-header { margin-bottom: var(--space-3); }
 
 .kpi-label {
-  font-size: 0.813rem;
-  font-weight: 600;
-  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.04em;
 }
 
 .kpi-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.025em;
+  font-size: 1.75rem; /* 28px */
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: var(--space-2);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 1024px) {
+  .kpi-value { font-size: 2rem; }
 }
 
 .kpi-goal {
-  font-size: 0.813rem;
-  color: #64748b;
-  margin-bottom: 0.75rem;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .kpi-progress-bar {
   width: 100%;
-  height: 6px;
-  background: #f1f5f9;
-  border-radius: 3px;
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: 2px;
   overflow: hidden;
 }
 
 .kpi-progress {
   height: 100%;
-  background: #3b82f6;
-  border-radius: 3px;
+  background: var(--accent);
+  border-radius: 2px;
   transition: width 0.6s ease;
 }
 
-.kpi-progress.success {
-  background: #10b981;
-}
+.kpi-progress.success { background: var(--success); }
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
 }
 
-.chart-card.full-width {
-  grid-column: 1 / -1;
-}
+/* Grid items default to min-width:auto, which stops cards from shrinking. */
+.chart-card { min-width: 0; }
 
-.chart-content {
-  padding: 1rem;
-}
+.chart-card.full-width { grid-column: 1 / -1; }
 
-.donut-chart {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3rem;
-}
-
-.donut-svg {
-  width: 200px;
-  height: 200px;
-}
-
-.donut-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  font-size: 0.875rem;
-  color: #475569;
-}
+.chart-content { padding: var(--space-4); min-width: 0; }
 
 .legend-dot {
   width: 10px;
   height: 10px;
   border-radius: 2px;
+  flex-shrink: 0;
 }
 
-/* Order Health Dashboard Styles */
+/* Order health */
 .order-health-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-5);
   align-items: center;
-  padding: 1rem;
-  min-height: 240px;
+  padding: var(--space-4);
 }
 
 .order-health-chart {
@@ -872,18 +841,20 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 0 1rem;
+  gap: var(--space-4);
+  min-width: 0;
 }
 
 .donut-svg-compact {
-  width: 200px;
-  height: 200px;
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  aspect-ratio: 1;
 }
 
 .donut-center-label {
   font-size: 12px;
-  fill: #64748b;
+  fill: var(--text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -891,95 +862,91 @@ export default {
 
 .donut-center-value {
   font-size: 36px;
-  fill: #0f172a;
-  font-weight: 700;
+  fill: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .donut-legend-compact {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.625rem 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-4);
 }
 
 .legend-item-compact {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   font-size: 0.875rem;
-  color: #475569;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .order-health-metrics {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--space-4);
   justify-content: center;
   align-items: center;
+  min-width: 0;
 }
 
 .health-metric {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: var(--space-1);
   text-align: center;
   width: 100%;
 }
 
 .health-metric-label {
-  font-size: 0.688rem;
-  color: #64748b;
-  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .health-metric-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.025em;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
 }
 
-.metric-good {
-  color: #10b981;
-}
+.metric-good { color: var(--success); }
+.metric-warning { color: var(--warning); }
+.metric-bad { color: var(--danger); }
 
-.metric-warning {
-  color: #f59e0b;
-}
-
-.metric-bad {
-  color: #ef4444;
-}
-
+/* Inventory by category */
 .horizontal-bar-chart {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 0 1rem;
+  gap: var(--space-4);
 }
 
 .h-bar-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-3);
 }
 
+/* Label shrinks on narrow screens instead of a fixed 120px */
 .h-bar-label {
-  width: 120px;
-  min-width: 120px;
+  flex: 0 0 min(120px, 30%);
   font-size: 0.875rem;
-  font-weight: 600;
-  color: #475569;
-  flex-shrink: 0;
+  font-weight: 500;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
 }
 
 .h-bar-container {
   flex: 1;
+  min-width: 0;
   height: 32px;
-  background: #f8fafc;
-  border-radius: 6px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -988,284 +955,58 @@ export default {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 0.75rem;
+  padding-right: var(--space-3);
   transition: width 0.6s ease;
 }
 
 .h-bar-value {
-  font-size: 0.813rem;
-  font-weight: 700;
-  color: white;
-}
-
-.line-chart {
-  display: flex;
-  gap: 1.5rem;
-  height: 280px;
-}
-
-.line-y-axis {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-right: 1rem;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  border-right: 1px solid #e2e8f0;
-}
-
-.line-chart-area {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  gap: 0.5rem;
-}
-
-.line-bar-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  max-width: 80px;
-  gap: 0.5rem;
-}
-
-.line-bar-wrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.line-bar {
-  width: 100%;
-  max-width: 60px;
-  min-height: 8px;
-  background: #3b82f6;
-  border-radius: 6px 6px 0 0;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-}
-
-.line-bar.empty-bar {
-  background: #e2e8f0;
-  box-shadow: none;
-  min-height: 4px;
-}
-
-.line-bar:hover {
-  background: #2563eb;
-  transform: scaleY(1.05);
-}
-
-.line-bar.empty-bar:hover {
-  background: #cbd5e1;
-  transform: none;
-}
-
-.line-bar-label {
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--accent-contrast);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .no-data {
-  padding: 2rem;
+  padding: var(--space-5);
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-faint);
   font-size: 0.875rem;
 }
 
 .no-backlog {
-  padding: 3rem;
+  padding: var(--space-6);
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .success-icon {
   width: 48px;
   height: 48px;
-  color: #10b981;
+  color: var(--success);
 }
 
 .no-backlog-text {
   font-size: 1.125rem;
-  color: #10b981;
+  color: var(--success);
   font-weight: 600;
   margin: 0;
 }
 
-.clickable-row {
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.clickable-row:hover {
-  background: #eff6ff !important;
-}
-
-/* Tasks Card Styles */
-.tasks-card {
-  margin-bottom: 2rem;
-}
-
-.tasks-content {
-  padding: 1.5rem;
-}
-
-.task-input-container {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.task-input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: border-color 0.2s ease;
-}
-
-.task-input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.task-add-btn {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.task-add-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-.task-add-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.no-tasks {
-  text-align: center;
-  padding: 2rem;
-  color: #64748b;
-  font-style: italic;
-}
-
-.tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.task-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.task-item:hover {
-  border-color: #e2e8f0;
-  background: white;
-}
-
-.task-item.completed {
-  opacity: 0.6;
-}
-
-.task-item.completed .task-text {
-  text-decoration: line-through;
-  color: #94a3b8;
-}
-
-.task-checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: #667eea;
-}
-
-.task-text {
-  flex: 1;
-  cursor: pointer;
-  user-select: none;
-  color: #0f172a;
-  font-size: 0.95rem;
-}
-
-.task-delete-btn {
-  width: 28px;
-  height: 28px;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.task-delete-btn:hover {
-  background: #dc2626;
-  transform: scale(1.1);
-}
+.clickable-row { cursor: pointer; }
 
 .po-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
+  height: 32px;
+  padding: 0 var(--space-3);
   font-size: 0.813rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
-.po-button.create {
-  background: #3b82f6;
-  color: white;
-}
-
-.po-button.create:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-}
-
-.po-button.view {
-  background: #64748b;
-  color: white;
-}
-
-.po-button.view:hover {
-  background: #475569;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(100, 116, 139, 0.3);
+@media (max-width: 639px) {
+  .po-button { min-height: 40px; }
+  .kpi-card { padding: var(--space-4); }
 }
 </style>

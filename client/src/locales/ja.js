@@ -6,6 +6,12 @@ export default {
     orders: '注文',
     finance: '財務',
     demandForecast: '需要予測',
+    restocking: '補充発注',
+    reports: 'レポート',
+    openMenu: 'メニューを開く',
+    closeMenu: 'メニューを閉じる',
+    darkMode: 'ダークモード',
+    mainNav: 'メイン',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム'
   },
@@ -106,6 +112,9 @@ export default {
     title: '注文',
     description: '顧客注文の表示と管理',
     allOrders: 'すべての注文',
+    submittedOrders: '発注済みの注文',
+    submittedOrdersHint: 'このセッションで行った補充発注です。上部のフィルターの影響を受けません。',
+    noSubmittedOrders: '補充発注はまだありません。',
     totalOrders: '総注文数',
     totalRevenue: '総収益',
     avgOrderValue: '平均注文額',
@@ -125,6 +134,7 @@ export default {
       totalValue: '合計金額',
       status: 'ステータス',
       expectedDelivery: '予定配達日',
+      leadTime: 'リードタイム（日）',
       actualDelivery: '実際の配達日'
     }
   },
@@ -188,6 +198,38 @@ export default {
     }
   },
 
+  // Restocking
+  restocking: {
+    title: '補充発注',
+    description: '予算に応じた補充推奨を確認し、補充発注を行います',
+    budget: '予算',
+    budgetSlider: '予算スライダー',
+    budgetInput: '予算金額',
+    selectedTotal: '選択合計',
+    remaining: '残額',
+    itemCount: '選択品目数',
+    recommendations: '推奨リスト',
+    noRecommendations: 'この予算での推奨はありません。',
+    overBudget: '選択合計が予算を超えています。',
+    placeOrder: '発注する',
+    placing: '発注中...',
+    orderPlaced: '注文 {orderNumber} を発注しました。予定納品日: {date}',
+    viewOrders: '注文を表示',
+    placeFailed: '発注に失敗しました',
+    loadFailed: '推奨の読み込みに失敗しました',
+    table: {
+      select: '選択',
+      sku: 'SKU',
+      item: '品目',
+      trend: 'トレンド',
+      gap: '需要ギャップ',
+      quantity: '数量',
+      unitCost: '単価',
+      lineTotal: '小計',
+      leadTime: 'リードタイム（日）'
+    }
+  },
+
   // Filters
   filters: {
     timePeriod: '期間',
@@ -203,6 +245,7 @@ export default {
     delivered: '配達済み',
     shipped: '出荷済み',
     processing: '処理中',
+    submitted: '発注済み',
     backordered: 'バックオーダー',
     inStock: '在庫あり',
     lowStock: '在庫僅少',

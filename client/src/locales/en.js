@@ -6,6 +6,12 @@ export default {
     orders: 'Orders',
     finance: 'Finance',
     demandForecast: 'Demand Forecast',
+    restocking: 'Restocking',
+    reports: 'Reports',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
+    darkMode: 'Dark mode',
+    mainNav: 'Main',
     companyName: 'Catalyst Components',
     subtitle: 'Inventory Management System'
   },
@@ -106,6 +112,9 @@ export default {
     title: 'Orders',
     description: 'View and manage customer orders',
     allOrders: 'All Orders',
+    submittedOrders: 'Submitted Orders',
+    submittedOrdersHint: 'Restocking orders placed in this session. Not affected by the filters above.',
+    noSubmittedOrders: 'No restocking orders submitted yet.',
     totalOrders: 'Total Orders',
     totalRevenue: 'Total Revenue',
     avgOrderValue: 'Avg Order Value',
@@ -125,6 +134,7 @@ export default {
       totalValue: 'Total Value',
       status: 'Status',
       expectedDelivery: 'Expected Delivery',
+      leadTime: 'Lead Time (days)',
       actualDelivery: 'Actual Delivery'
     }
   },
@@ -188,6 +198,38 @@ export default {
     }
   },
 
+  // Restocking
+  restocking: {
+    title: 'Restocking',
+    description: 'Get purchase recommendations for a budget and place a restocking order',
+    budget: 'Budget',
+    budgetSlider: 'Budget slider',
+    budgetInput: 'Budget amount',
+    selectedTotal: 'Selected Total',
+    remaining: 'Remaining',
+    itemCount: 'Items Selected',
+    recommendations: 'Recommendations',
+    noRecommendations: 'No recommendations for this budget.',
+    overBudget: 'Selected total exceeds the budget.',
+    placeOrder: 'Place Order',
+    placing: 'Placing order...',
+    orderPlaced: 'Order {orderNumber} placed. Expected delivery: {date}.',
+    viewOrders: 'View in Orders',
+    placeFailed: 'Failed to place order',
+    loadFailed: 'Failed to load recommendations',
+    table: {
+      select: 'Select',
+      sku: 'SKU',
+      item: 'Item',
+      trend: 'Trend',
+      gap: 'Demand Gap',
+      quantity: 'Qty',
+      unitCost: 'Unit Cost',
+      lineTotal: 'Line Total',
+      leadTime: 'Lead Time (days)'
+    }
+  },
+
   // Filters
   filters: {
     timePeriod: 'Time Period',
@@ -203,6 +245,7 @@ export default {
     delivered: 'Delivered',
     shipped: 'Shipped',
     processing: 'Processing',
+    submitted: 'Submitted',
     backordered: 'Backordered',
     inStock: 'In Stock',
     lowStock: 'Low Stock',
