@@ -113,6 +113,7 @@ class BacklogItem(BaseModel):
     days_delayed: int
     priority: str
     has_purchase_order: Optional[bool] = False
+    purchase_order_id: Optional[str] = None
 
 class PurchaseOrder(BaseModel):
     id: str
@@ -126,12 +127,12 @@ class PurchaseOrder(BaseModel):
     notes: Optional[str] = None
 
 class CreatePurchaseOrderRequest(BaseModel):
-    backlog_item_id: str
-    supplier_name: str
-    quantity: int
-    unit_cost: float
-    expected_delivery_date: str
-    notes: Optional[str] = None
+    backlog_item_id: str = Field(max_length=64)
+    supplier_name: str = Field(min_length=1, max_length=120)
+    quantity: int = Field(gt=0, le=100_000)
+    unit_cost: float = Field(gt=0, le=1_000_000, allow_inf_nan=False)
+    expected_delivery_date: date
+    notes: Optional[str] = Field(default=None, max_length=1000)
 
 # API endpoints
 @app.get("/")
@@ -186,9 +187,10 @@ def get_backlog():
     result = []
     for item in backlog_items:
         item_dict = dict(item)
-        # Check if this backlog item has a purchase order
-        has_po = any(po["backlog_item_id"] == item["id"] for po in purchase_orders)
-        item_dict["has_purchase_order"] = has_po
+        # The Dashboard switches "Create PO" / "View PO" on purchase_order_id
+        po = next((po for po in purchase_orders if po["backlog_item_id"] == item["id"]), None)
+        item_dict["has_purchase_order"] = po is not None
+        item_dict["purchase_order_id"] = po["id"] if po else None
         result.append(item_dict)
     return result
 
@@ -460,6 +462,111 @@ def place_restock_order(request: RestockOrderRequest):
 def get_submitted_orders():
     """List submitted restock orders, newest first"""
     return list(reversed(submitted_orders))
+
+
+# --- Purchase orders (one per backlog item) -------------------------------------
+
+MAX_PURCHASE_ORDERS = 500
+_po_lock = threading.Lock()
+
+
+@app.post("/api/purchase-orders", response_model=PurchaseOrder, status_code=201)
+def create_purchase_order(request: CreatePurchaseOrderRequest):
+    """Create a purchase order for a backlog item; in memory only, resets on restart"""
+    if not any(b["id"] == request.backlog_item_id for b in backlog_items):
+        raise HTTPException(status_code=404, detail=f"Backlog item {request.backlog_item_id} not found")
+    if request.expected_delivery_date < date.today():
+        raise HTTPException(status_code=400, detail="expected_delivery_date must not be in the past")
+    with _po_lock:
+        if any(po["backlog_item_id"] == request.backlog_item_id for po in purchase_orders):
+            raise HTTPException(status_code=409, detail="This backlog item already has a purchase order")
+        if len(purchase_orders) >= MAX_PURCHASE_ORDERS:
+            raise HTTPException(status_code=409, detail="Purchase order limit reached; restart the server to reset it")
+        po = {
+            **request.model_dump(),
+            "id": f"PO-{len(purchase_orders) + 1:04d}",
+            "expected_delivery_date": request.expected_delivery_date.isoformat(),
+            "status": "Pending",
+            "created_date": date.today().isoformat(),
+        }
+        purchase_orders.append(po)
+    return po
+
+
+@app.get("/api/purchase-orders/{backlog_item_id}", response_model=PurchaseOrder)
+def get_purchase_order_by_backlog_item(backlog_item_id: str):
+    """Get the purchase order belonging to a backlog item"""
+    po = next((po for po in purchase_orders if po["backlog_item_id"] == backlog_item_id), None)
+    if po is None:
+        raise HTTPException(status_code=404, detail=f"Purchase order for backlog item {backlog_item_id} not found")
+    return po
+
+
+# --- Tasks (the profile menu's task list) ---------------------------------------
+
+class Task(BaseModel):
+    id: str
+    title: str
+    priority: str
+    dueDate: str  # camelCase to match the mock tasks the client merges with these
+    status: str
+
+
+class CreateTaskRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    priority: str = Field(pattern="^(high|medium|low)$")
+    dueDate: date
+
+
+MAX_TASKS = 500
+tasks: list = []
+_tasks_lock = threading.Lock()
+_next_task_no = 1
+
+
+def _find_task(task_id: str) -> dict:
+    task = next((t for t in tasks if t["id"] == task_id), None)
+    if task is None:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    return task
+
+
+@app.get("/api/tasks", response_model=List[Task])
+def get_tasks():
+    """List tasks, newest first"""
+    return list(reversed(tasks))
+
+
+@app.post("/api/tasks", response_model=Task, status_code=201)
+def create_task(request: CreateTaskRequest):
+    """Create a pending task; in memory only, resets on restart"""
+    global _next_task_no
+    with _tasks_lock:
+        if len(tasks) >= MAX_TASKS:
+            raise HTTPException(status_code=409, detail="Task limit reached; restart the server to reset it")
+        # "api-" prefix keeps ids distinct from the client's numeric mock-task ids
+        task = {"id": f"api-{_next_task_no}", "title": request.title.strip(), "priority": request.priority,
+                "dueDate": request.dueDate.isoformat(), "status": "pending"}
+        _next_task_no += 1
+        tasks.append(task)
+    return task
+
+
+@app.patch("/api/tasks/{task_id}", response_model=Task)
+def toggle_task(task_id: str):
+    """Toggle a task between pending and completed"""
+    with _tasks_lock:
+        task = _find_task(task_id)
+        task["status"] = "completed" if task["status"] == "pending" else "pending"
+    return task
+
+
+@app.delete("/api/tasks/{task_id}")
+def delete_task(task_id: str):
+    """Delete a task"""
+    with _tasks_lock:
+        tasks.remove(_find_task(task_id))
+    return {"deleted": task_id}
 
 
 if __name__ == "__main__":

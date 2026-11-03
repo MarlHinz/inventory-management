@@ -410,6 +410,38 @@ export default {
     }
   },
 
+  // 発注書
+  purchaseOrder: {
+    createTitle: '発注書を作成',
+    viewTitle: '発注書',
+    sku: 'SKU',
+    shortfall: '不足数',
+    unitsCount: '{count}個',
+    supplier: '仕入先名',
+    quantity: '数量',
+    unitCost: '単価',
+    expectedDelivery: '納品予定日',
+    notes: '備考（任意）',
+    total: '合計',
+    submit: '発注書を作成',
+    submitting: '作成中...',
+    poId: '発注書ID',
+    status: 'ステータス',
+    createdDate: '作成日',
+    loadError: '発注書の読み込みに失敗しました',
+    notFound: '発注書が見つかりません',
+    errors: {
+      supplier: '仕入先名を入力してください（1～120文字）。',
+      quantity: '数量は1～100,000の整数で入力してください。',
+      unitCost: '単価は0より大きい値を入力してください。',
+      date: '納品予定日を選択してください。',
+      pastDate: '納品予定日に過去の日付は指定できません。',
+      duplicate: 'このバックログ項目には既に発注書があります。',
+      itemNotFound: 'バックログ項目が見つかりません。',
+      generic: '発注書の作成に失敗しました'
+    }
+  },
+
   // Common
   common: {
     loading: '読み込み中...',
