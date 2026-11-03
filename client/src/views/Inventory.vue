@@ -60,8 +60,8 @@
                 <td>{{ translateCategory(item.category) }}</td>
                 <td class="num"><strong>{{ item.quantity_on_hand }}</strong></td>
                 <td class="num">{{ item.reorder_point }}</td>
-                <td class="num">{{ currencySymbol }}{{ item.unit_cost.toFixed(2) }}</td>
-                <td class="num"><strong>{{ currencySymbol }}{{ (item.quantity_on_hand * item.unit_cost).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</strong></td>
+                <td class="num">{{ money(item.unit_cost) }}</td>
+                <td class="num"><strong>{{ money(item.quantity_on_hand * item.unit_cost) }}</strong></td>
                 <td>{{ translateWarehouse(item.location) }}</td>
                 <td>
                   <span :class="['badge', getStockStatusClass(item)]">
@@ -88,6 +88,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
+import { formatCurrencyWithDecimals } from '../utils/currency'
 import InventoryDetailModal from '../components/InventoryDetailModal.vue'
 
 export default {
@@ -97,6 +98,9 @@ export default {
   },
   setup() {
     const { t, currentCurrency, translateProductName, translateWarehouse } = useI18n()
+
+    // Shared util: app-locale grouping and USD->JPY conversion, 2 decimals for USD
+    const money = (v) => formatCurrencyWithDecimals(v, currentCurrency.value, 2)
 
     const currencySymbol = computed(() => {
       return currentCurrency.value === 'JPY' ? '¥' : '$'
@@ -217,6 +221,7 @@ export default {
       selectedItem,
       showItemDetail,
       currencySymbol,
+      money,
       translateProductName,
       translateWarehouse
     }

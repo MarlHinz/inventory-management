@@ -109,8 +109,8 @@
                 <td>
                   <span :class="['badge', item.trend]">{{ t(`trends.${item.trend}`) }}</span>
                 </td>
-                <td class="num">{{ item.gap.toLocaleString() }}</td>
-                <td class="num">{{ item.quantity.toLocaleString() }}</td>
+                <td class="num">{{ num(item.gap) }}</td>
+                <td class="num">{{ num(item.quantity) }}</td>
                 <td class="num">{{ money(item.unit_cost) }}</td>
                 <td class="num"><strong>{{ money(item.total_cost) }}</strong></td>
                 <td class="num">{{ item.lead_time_days }}</td>
@@ -127,21 +127,21 @@
 import { ref, computed, onMounted } from 'vue'
 import { api } from '../api'
 import { useI18n } from '../composables/useI18n'
+import { formatCurrencyWithDecimals } from '../utils/currency'
 
 const DEFAULT_BUDGET = 5000
 
 export default {
   name: 'Restocking',
   setup() {
-    const { t, currentLocale, translateProductName } = useI18n()
+    const { t, currentLocale, currentCurrency, translateProductName } = useI18n()
 
-    // Server budget and costs are USD: always show $ and en-US formatting, regardless of UI locale.
+    // Server budget and costs are USD. The budget input/slider stays in USD (sent to the API as-is),
+    // so its label keeps '$'; displayed amounts go through the shared util (JPY conversion + app locale).
     const currencySymbol = '$'
-    const money = (v) =>
-      `${currencySymbol}${Number(v).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      })}`
+    const money = (v) => formatCurrencyWithDecimals(Number(v), currentCurrency.value, 2)
+    // Plain counts use the app locale, not the browser default
+    const num = (v) => Number(v).toLocaleString(currentLocale.value === 'ja' ? 'ja-JP' : 'en-US')
     const formatDate = (s) => {
       const d = new Date(s)
       if (isNaN(d.getTime())) return s
@@ -257,7 +257,7 @@ export default {
     onMounted(loadRecommendations)
 
     return {
-      t, currencySymbol, money, formatDate, translateProductName,
+      t, currencySymbol, money, num, formatDate, translateProductName,
       budget, data, loading, error, submitting, placeError, placedOrder,
       deselected, sliderMax, usagePct, selectedItems, selectedTotal, overBudget, canPlace,
       loadRecommendations, onNumberCommit, toggle, placeOrder

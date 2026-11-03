@@ -56,7 +56,7 @@
                     <div class="items-dropdown">
                       <div v-for="(item, idx) in order.items" :key="idx" class="item-entry">
                         <span class="item-name">{{ translateProductName(item.name) }}</span>
-                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ currencySymbol }}{{ item.unit_price }}</span>
+                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ money(item.unit_price) }}</span>
                       </div>
                     </div>
                   </details>
@@ -68,7 +68,7 @@
                 </td>
                 <td class="col-date">{{ formatDate(order.order_date) }}</td>
                 <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                <td class="col-value num"><strong>{{ currencySymbol }}{{ order.total_value.toLocaleString() }}</strong></td>
+                <td class="col-value num"><strong>{{ money(order.total_value) }}</strong></td>
               </tr>
             </tbody>
           </table>
@@ -110,12 +110,12 @@
                   <div class="items-dropdown">
                     <div v-for="item in order.items" :key="item.sku" class="item-entry">
                       <span class="item-name">{{ translateProductName(item.name) }}</span>
-                      <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ currencySymbol }}{{ item.unit_cost }}</span>
+                      <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ money(item.unit_cost) }}</span>
                     </div>
                   </div>
                 </details>
               </td>
-              <td class="col-value num"><strong>{{ currencySymbol }}{{ formatAmount(order.total_value) }}</strong></td>
+              <td class="col-value num"><strong>{{ money(order.total_value) }}</strong></td>
               <td class="col-date">{{ formatDate(order.order_date) }}</td>
               <td class="col-date num">{{ order.lead_time_days }}</td>
               <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
@@ -137,6 +137,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
+import { formatCurrencyWithDecimals } from '../utils/currency'
 
 export default {
   name: 'Orders',
@@ -180,11 +181,8 @@ export default {
       }
     }
 
-    // Explicit locale so decimals don't depend on the browser's regional settings
-    const formatAmount = (v) => {
-      const { currentLocale } = useI18n()
-      return v.toLocaleString(currentLocale.value === 'ja' ? 'ja-JP' : 'en-US', { maximumFractionDigits: 2 })
-    }
+    // Shared util: app-locale grouping and USD->JPY conversion, 2 decimals for USD
+    const money = (v) => formatCurrencyWithDecimals(v, currentCurrency.value, 2)
 
     const loadSubmittedOrders = async () => {
       try {
@@ -236,11 +234,11 @@ export default {
       orders,
       submittedOrders,
       submittedError,
-      formatAmount,
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
       currencySymbol,
+      money,
       translateProductName,
       translateCustomerName
     }
