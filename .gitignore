@@ -53,3 +53,6 @@ logs/
 
 # Environment variables
 .env
+
+# Agent worktrees (local only)
+.claude/worktrees/
