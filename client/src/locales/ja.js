@@ -354,6 +354,62 @@ export default {
     selectLanguage: '言語を選択'
   },
 
+  // Reports
+  reports: {
+    title: 'パフォーマンスレポート',
+    description: '四半期の業績指標と月次トレンドを確認します',
+    loading: 'レポートを読み込み中...',
+    loadError: 'レポートの読み込みに失敗しました',
+    quarterlyPerformance: '四半期業績',
+    monthlyRevenueTrend: '月次売上トレンド',
+    monthOverMonth: '前月比分析',
+    table: {
+      quarter: '四半期',
+      totalOrders: '総注文数',
+      totalRevenue: '総売上',
+      avgOrderValue: '平均注文額',
+      fulfillmentRate: '出荷達成率',
+      month: '月',
+      orders: '注文数',
+      revenue: '売上',
+      change: '増減',
+      growthRate: '成長率'
+    },
+    stats: {
+      totalRevenue: '総売上(年初来)',
+      avgMonthlyRevenue: '月平均売上',
+      totalOrders: '総注文数(年初来)',
+      bestQuarter: '最高業績の四半期'
+    },
+    notAvailable: '該当なし'
+  },
+
+  // Backlog
+  backlog: {
+    title: 'バックログ管理',
+    description: '在庫不足を追跡し解消します',
+    loading: 'バックログを読み込み中...',
+    loadError: 'バックログの読み込みに失敗しました',
+    highPriority: '優先度: 高',
+    mediumPriority: '優先度: 中',
+    lowPriority: '優先度: 低',
+    totalItems: 'バックログ総件数',
+    items: 'バックログ項目',
+    empty: 'バックログ項目はありません - すべての注文を出荷できます。',
+    unitsShort: '{count}個不足',
+    daysCount: '{count}日',
+    table: {
+      orderId: '注文ID',
+      sku: 'SKU',
+      itemName: '品名',
+      quantityNeeded: '必要数量',
+      quantityAvailable: '在庫数量',
+      shortage: '不足',
+      daysDelayed: '遅延日数',
+      priority: '優先度'
+    }
+  },
+
   // Common
   common: {
     loading: '読み込み中...',

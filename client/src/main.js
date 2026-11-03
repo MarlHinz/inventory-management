@@ -8,6 +8,7 @@ import Demand from './views/Demand.vue'
 import Spending from './views/Spending.vue'
 import Restocking from './views/Restocking.vue'
 import Reports from './views/Reports.vue'
+import Backlog from './views/Backlog.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -18,7 +19,9 @@ const router = createRouter({
     { path: '/demand', component: Demand },
     { path: '/restocking', component: Restocking },
     { path: '/spending', component: Spending },
-    { path: '/reports', component: Reports }
+    { path: '/reports', component: Reports },
+    // Reachable by URL only; intentionally not in the sidebar nav
+    { path: '/backlog', component: Backlog }
   ]
 })
 
