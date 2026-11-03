@@ -47,11 +47,7 @@
         <div class="chart-container">
           <div class="bar-chart">
             <div class="y-axis">
-              <span>{{ currencySymbol }}{{ maxRevenueValue }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.75) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.5) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.25) }}K</span>
-              <span>{{ currencySymbol }}0</span>
+              <span v-for="tick in revenueAxisTicks" :key="tick">{{ formatCurrency(tick) }}</span>
             </div>
             <div class="chart-area">
               <div v-for="month in monthlyRevenue" :key="month.month" class="bar-group-revenue">
@@ -80,12 +76,7 @@
         <div class="chart-container">
           <div class="bar-chart">
             <div class="y-axis">
-              <span>{{ currencySymbol }}25K</span>
-              <span>{{ currencySymbol }}20K</span>
-              <span>{{ currencySymbol }}15K</span>
-              <span>{{ currencySymbol }}10K</span>
-              <span>{{ currencySymbol }}5K</span>
-              <span>{{ currencySymbol }}0</span>
+              <span v-for="tick in costAxisTicks" :key="tick">{{ formatCurrency(tick) }}</span>
             </div>
             <div class="chart-area">
               <div v-for="month in monthlySpending" :key="month.month" class="bar-group">
@@ -341,10 +332,10 @@ export default {
 
     // Max value for chart scaling
     const maxRevenueValue = computed(() => {
-      const maxRevenue = Math.max(...monthlyRevenue.value.map(m => m.revenue))
-      const maxCost = Math.max(...monthlyRevenue.value.map(m => m.costs))
+      const maxRevenue = Math.max(0, ...monthlyRevenue.value.map(m => m.revenue))
+      const maxCost = Math.max(0, ...monthlyRevenue.value.map(m => m.costs))
       const max = Math.max(maxRevenue, maxCost)
-      return Math.ceil(max / 1000) // Return in K
+      return Math.max(1, Math.ceil(max / 1000)) // Return in K; min 1 so an empty chart has a scale
     })
 
     const loadData = async () => {
@@ -383,9 +374,20 @@ export default {
       return currentCurrency.value === 'JPY' ? '¥' : '$'
     })
 
+    // Axis scale comes from the data (USD); labels go through formatCurrency so they convert to JPY.
+    // Ticks run top to bottom (the y-axis is laid out that way): max, 3/4, 1/2, 1/4, 0.
+    const makeTicks = (max) => [1, 0.75, 0.5, 0.25, 0].map(f => Math.round(max * f))
+    const revenueAxisTicks = computed(() => makeTicks(maxRevenueValue.value * 1000))
+    // Tallest stacked bar, rounded up to a 5K step; floor of 5K avoids a zero-height scale.
+    const costAxisMax = computed(() => {
+      const tallest = Math.max(0, ...monthlySpending.value.map(m =>
+        m.procurement + m.operational + m.labor + m.overhead))
+      return Math.max(5000, Math.ceil(tallest / 5000) * 5000)
+    })
+    const costAxisTicks = computed(() => makeTicks(costAxisMax.value))
+
     const getBarHeight = (value) => {
-      const maxValue = 25000
-      return (value / maxValue) * 100
+      return (value / costAxisMax.value) * 100
     }
 
     const getRevenueBarHeight = (value) => {
@@ -473,6 +475,8 @@ export default {
       profitMargin,
       monthlyRevenue,
       maxRevenueValue,
+      revenueAxisTicks,
+      costAxisTicks,
       formatCurrency,
       currencySymbol,
       getBarHeight,

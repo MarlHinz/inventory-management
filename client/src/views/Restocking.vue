@@ -14,10 +14,10 @@
           id="budget-slider"
           type="range"
           min="0"
-          step="250"
-          :max="sliderMax"
-          :value="budget"
-          @input="budget = Number($event.target.value)"
+          :step="budgetStep"
+          :max="displayMax"
+          :value="displayBudget"
+          @input="budget = toUsd($event.target.value)"
           @change="loadRecommendations"
         />
         <label for="budget-number" class="budget-label">{{ t('restocking.budgetInput') }} ({{ currencySymbol }})</label>
@@ -26,9 +26,9 @@
           class="budget-number"
           type="number"
           min="0"
-          step="250"
-          :max="sliderMax"
-          :value="budget"
+          :step="budgetStep"
+          :max="displayMax"
+          :value="displayBudget"
           @change="onNumberCommit"
         />
       </div>
@@ -127,7 +127,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { api } from '../api'
 import { useI18n } from '../composables/useI18n'
-import { formatCurrencyWithDecimals } from '../utils/currency'
+import { formatCurrencyWithDecimals, convertAmount } from '../utils/currency'
 
 const DEFAULT_BUDGET = 5000
 
@@ -136,9 +136,18 @@ export default {
   setup() {
     const { t, currentLocale, currentCurrency, translateProductName } = useI18n()
 
-    // Server budget and costs are USD. The budget input/slider stays in USD (sent to the API as-is),
-    // so its label keeps '$'; displayed amounts go through the shared util (JPY conversion + app locale).
-    const currencySymbol = '$'
+    // Server budget and costs are USD, and `budget` stays USD (sent to the API as-is).
+    // The slider/number input show and edit it in the display currency, converting at the util's rate.
+    const currencySymbol = computed(() => (currentCurrency.value === 'JPY' ? '¥' : '$'))
+    const displayBudget = computed(() => convertAmount(budget.value, currentCurrency.value))
+    const displayMax = computed(() => convertAmount(sliderMax.value, currentCurrency.value))
+    // 250 USD / 25,000 JPY: sliderMax is a multiple of 500 USD (= 75,000 JPY), so the max lands on a step in both.
+    const budgetStep = computed(() => (currentCurrency.value === 'JPY' ? 25000 : 250))
+    // Display units -> USD, rounded to cents so JPY input like 10,000 doesn't send 66.666666...
+    const toUsd = (v) => {
+      const rate = convertAmount(1, currentCurrency.value)
+      return Math.round((Number(v) / rate) * 100) / 100
+    }
     const money = (v) => formatCurrencyWithDecimals(Number(v), currentCurrency.value, 2)
     // Plain counts use the app locale, not the browser default
     const num = (v) => Number(v).toLocaleString(currentLocale.value === 'ja' ? 'ja-JP' : 'en-US')
@@ -191,15 +200,15 @@ export default {
     }
 
     const onNumberCommit = (e) => {
-      const v = Number(e.target.value)
+      const v = toUsd(e.target.value)
       // Server rejects negative budgets (422); clamp to [0, sliderMax] and ignore blanks.
       if (e.target.value === '' || isNaN(v)) {
-        e.target.value = budget.value
+        e.target.value = displayBudget.value
         return
       }
       budget.value = Math.min(sliderMax.value, Math.max(0, v))
       // Vue won't re-render if budget is unchanged, so a typed out-of-range value would linger; write it back.
-      e.target.value = budget.value
+      e.target.value = displayBudget.value
       loadRecommendations()
     }
 
@@ -257,7 +266,7 @@ export default {
     onMounted(loadRecommendations)
 
     return {
-      t, currencySymbol, money, num, formatDate, translateProductName,
+      t, currencySymbol, displayBudget, displayMax, budgetStep, toUsd, money, num, formatDate, translateProductName,
       budget, data, loading, error, submitting, placeError, placedOrder,
       deselected, sliderMax, usagePct, selectedItems, selectedTotal, overBudget, canPlace,
       loadRecommendations, onNumberCommit, toggle, placeOrder
