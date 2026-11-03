@@ -13,7 +13,7 @@
       >
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16 M4 12h16 M4 18h16" /></svg>
       </button>
-      <span class="topbar-title">{{ t('nav.companyName') }}</span>
+      <BrandLogo class="topbar-logo" />
     </header>
 
     <div class="overlay" :class="{ visible: drawerOpen }" aria-hidden="true" @click="closeDrawer"></div>
@@ -21,7 +21,7 @@
     <aside id="app-sidebar" ref="sidebar" class="sidebar" :class="{ open: drawerOpen }" tabindex="-1">
       <div class="sidebar-head">
         <div class="logo">
-          <span class="logo-name">{{ t('nav.companyName') }}</span>
+          <BrandLogo class="logo-mark" />
           <span class="logo-sub">{{ t('nav.subtitle') }}</span>
         </div>
         <button class="icon-btn close-drawer" type="button" :aria-label="t('nav.closeMenu')" @click="closeDrawer">
@@ -104,6 +104,7 @@ import ProfileMenu from './components/ProfileMenu.vue'
 import ProfileDetailsModal from './components/ProfileDetailsModal.vue'
 import TasksModal from './components/TasksModal.vue'
 import LanguageSwitcher from './components/LanguageSwitcher.vue'
+import BrandLogo from './components/BrandLogo.vue'
 
 // 24x24 stroke icons, one path string each
 const navItems = [
@@ -123,7 +124,8 @@ export default {
     ProfileMenu,
     ProfileDetailsModal,
     TasksModal,
-    LanguageSwitcher
+    LanguageSwitcher,
+    BrandLogo
   },
   setup() {
     const { currentUser } = useAuth()
@@ -253,38 +255,44 @@ export default {
 </script>
 
 <style>
-/* ===== Design tokens (roles, not colors) ===== */
+/* ===== Design tokens (roles, not colors) - Horváth AI brand =====
+   Petrol scale: 50 #eef6f9 / 100 #d5e8ef / 200 #aacfdd / 300 #6fa9bf / 400 #3a7f9a / 500 #17607c / 600 #0a4d68 / 700 #05415a (brand) / 800 #043447 / 900 #03283a / 950 #021b27
+   Cyan #14e6d7 is a HIGHLIGHT only (nav indicator, focus ring, charts, progress, glow): never text or thin icons on light surfaces. */
 :root {
   /* surfaces */
-  --bg: #f6f7fb; --surface: #ffffff; --surface-2: #f1f3f9; --border: #e4e7ef; --border-strong: #cfd5e2;
-  /* text */
-  --text: #0b1020; --text-muted: #5b6478; --text-faint: #8a93a6;
+  --bg: #f2f6f8; --surface: #ffffff; --surface-2: #e9f0f3; --border: #d9e4ea; --border-strong: #b9cbd4;
+  /* text (muted/faint checked >= 4.5:1 on surface, surface-2 and bg) */
+  --text: #0a1f2b; --text-muted: #46606f; --text-faint: #5b7381;
   /* brand */
-  --accent: #4f46e5; --accent-hover: #4338ca; --accent-contrast: #ffffff;
+  --accent: #05415a; --accent-hover: #0a5473; --accent-contrast: #ffffff;
   --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
-  /* status */
-  --success: #059669; --warning: #d97706; --danger: #dc2626; --info: #0284c7;
+  --highlight: #14e6d7;
+  --glow: 0 0 0 3px color-mix(in srgb, var(--highlight) 35%, transparent);
+  /* status (AA text on surface; badges mix toward --text) */
+  --success: #047857; --warning: #b45309; --danger: #c0262d; --info: #0369a1;
   /* charts: an ordered categorical palette, used in this order */
-  --chart-1: #4f46e5; --chart-2: #06b6d4; --chart-3: #10b981; --chart-4: #f59e0b; --chart-5: #ef4444; --chart-6: #8b5cf6;
-  /* sidebar */
-  --sidebar-bg: #0b1020; --sidebar-text: #a4acc4; --sidebar-active: #ffffff; --sidebar-w: 248px;
+  --chart-1: #05415a; --chart-2: #14e6d7; --chart-3: #f2b134; --chart-4: #e5645a; --chart-5: #7c6bd6; --chart-6: #2f7ea3;
+  /* sidebar (petrol in both themes; text on it is white-ish) */
+  --sidebar-bg: #05415a; --sidebar-bg-grad: linear-gradient(180deg, #06475f 0%, #05415a 45%, #032e41 100%);
+  --sidebar-text: #bdd6e0; --sidebar-active: #ffffff; --sidebar-w: 248px;
+  --logo-petrol: #05415a;
   /* shape and space */
   --radius-sm: 6px; --radius: 10px; --radius-lg: 14px;
-  --shadow-sm: 0 1px 2px rgb(16 24 40 / .05); --shadow: 0 4px 16px -4px rgb(16 24 40 / .08);
+  --shadow-sm: 0 1px 2px rgb(5 65 90 / .06); --shadow: 0 6px 20px -6px rgb(5 65 90 / .16);
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
   /* additions beyond the skill sheet: modal scrim + elevated shadow, mobile top bar height */
-  --overlay: rgb(11 16 32 / .5); --shadow-lg: 0 20px 50px -12px rgb(16 24 40 / .25);
+  --overlay: rgb(3 24 34 / .55); --shadow-lg: 0 20px 50px -12px rgb(3 40 58 / .3);
   --topbar-h: 56px;
 }
 [data-theme="dark"] {
-  --bg: #070a13; --surface: #0e1322; --surface-2: #141a2c; --border: #1f2740; --border-strong: #2c3654;
-  --text: #e7eaf3; --text-muted: #98a1b8; --text-faint: #6b7590;
-  --accent: #818cf8; --accent-hover: #a5b4fc; --accent-contrast: #0b1020;
+  --bg: #04131b; --surface: #082230; --surface-2: #0c2c3d; --border: #14394d; --border-strong: #215168;
+  --text: #e6f1f5; --text-muted: #9fbac8; --text-faint: #86a3b2;
+  --accent: #14e6d7; --accent-hover: #5ff0e5; --accent-contrast: #03283a;
   --success: #34d399; --warning: #fbbf24; --danger: #f87171; --info: #38bdf8;
-  --chart-1: #818cf8; --chart-2: #22d3ee; --chart-3: #34d399; --chart-4: #fbbf24; --chart-5: #f87171; --chart-6: #a78bfa;
-  --sidebar-bg: #05070e;
+  --chart-1: #6aa8c4; --chart-2: #14e6d7; --chart-3: #f2b134; --chart-4: #f0786e; --chart-5: #9a8cf0; --chart-6: #4aa0c4;
+  --sidebar-bg: #03202d; --sidebar-bg-grad: linear-gradient(180deg, #04293a 0%, #03202d 50%, #021821 100%);
   --shadow-sm: none; --shadow: 0 0 0 1px var(--border);
   --overlay: rgb(0 0 0 / .65); --shadow-lg: 0 0 0 1px var(--border-strong), 0 20px 50px -12px rgb(0 0 0 / .6);
 }
@@ -309,14 +317,23 @@ html[data-theme="dark"] {
 body {
   font-family: var(--font-sans);
   background: var(--bg);
+  background-image: radial-gradient(900px 340px at 100% -10%, color-mix(in srgb, var(--highlight) 9%, transparent), transparent 70%);
+  background-attachment: fixed;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 :focus-visible {
+  /* accent outline keeps 3:1 on any surface; the cyan halo adds the brand glow */
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+  box-shadow: var(--glow);
+}
+/* on the petrol sidebar the cyan itself is the contrasting ring */
+.sidebar :focus-visible, .topbar :focus-visible {
+  outline-color: var(--highlight);
+  box-shadow: none;
 }
 
 input[type="range"] {
@@ -345,13 +362,14 @@ input[type="range"] {
   align-items: center;
   gap: var(--space-3);
   padding: 0 var(--space-4);
-  background: var(--sidebar-bg);
+  background: var(--sidebar-bg-grad);
   color: var(--sidebar-active);
+  --logo-petrol: #ffffff;
+  border-bottom: 1px solid color-mix(in srgb, var(--highlight) 30%, transparent);
 }
 
-.topbar-title {
-  font-weight: 700;
-  letter-spacing: -0.01em;
+.topbar-logo {
+  width: 112px;
 }
 
 .icon-btn {
@@ -406,8 +424,11 @@ input[type="range"] {
   width: min(var(--sidebar-w), 85vw);
   display: flex;
   flex-direction: column;
-  background: var(--sidebar-bg);
+  background: var(--sidebar-bg-grad);
   color: var(--sidebar-text);
+  /* the logo's petrol parts would vanish on the petrol sidebar: render them white here */
+  --logo-petrol: #ffffff;
+  box-shadow: 1px 0 0 color-mix(in srgb, var(--highlight) 14%, transparent);
   transform: translateX(-100%);
   /* visibility keeps the closed drawer out of the tab order; delayed so the slide-out is still visible */
   visibility: hidden;
@@ -436,15 +457,14 @@ input[type="range"] {
   gap: var(--space-1);
   min-width: 0;
 }
-.logo-name {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--sidebar-active);
+.logo-mark {
+  width: 148px;
+  max-width: 100%;
 }
 .logo-sub {
   font-size: 0.75rem;
   color: var(--sidebar-text);
+  margin-top: var(--space-2);
 }
 
 .sidebar-nav {
@@ -477,7 +497,10 @@ input[type="range"] {
 }
 .nav-link.active {
   color: var(--sidebar-active);
-  background: color-mix(in srgb, var(--sidebar-active) 10%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--highlight) 18%, transparent), color-mix(in srgb, var(--sidebar-active) 6%, transparent));
+}
+.nav-link.active .icon {
+  color: var(--highlight);
 }
 /* accent bar on the left edge of the active item */
 .nav-link.active::before {
@@ -488,7 +511,8 @@ input[type="range"] {
   bottom: var(--space-2);
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: var(--accent);
+  background: var(--highlight);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--highlight) 70%, transparent);
 }
 .nav-link:focus-visible,
 .sidebar .icon-btn:focus-visible {
@@ -526,8 +550,20 @@ input[type="range"] {
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
+.theme-toggle .icon {
+  color: var(--highlight);
+}
 .theme-toggle:hover {
   background: color-mix(in srgb, var(--sidebar-active) 14%, transparent);
+  box-shadow: var(--glow);
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.main-content > * {
+  animation: page-in 0.28s ease both;
 }
 
 .content {
@@ -580,7 +616,7 @@ input[type="range"] {
 
 .page-header h2 {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   margin-bottom: var(--space-1);
   letter-spacing: -0.02em;
@@ -599,17 +635,29 @@ input[type="range"] {
 }
 
 .stat-card {
+  position: relative;
+  overflow: hidden;
   background: var(--surface);
   padding: var(--space-5);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+/* thin petrol-to-cyan accent along the top edge of every KPI tile */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--chart-1), var(--highlight));
 }
 
 .stat-card:hover {
   border-color: var(--border-strong);
   box-shadow: var(--shadow);
+  transform: translateY(-1px);
 }
 
 .stat-label {
@@ -673,6 +721,7 @@ table {
 
 thead {
   background: var(--surface-2);
+  border-bottom: 2px solid color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
 th {
@@ -682,7 +731,7 @@ th {
   text-align: left;
   padding: var(--space-3) var(--space-4);
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text);
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -762,6 +811,7 @@ tbody tr:hover {
   color: var(--accent-contrast);
 }
 .btn-primary:hover:not(:disabled) {
+  box-shadow: var(--glow);
   background: var(--accent-hover);
   border-color: var(--accent-hover);
 }

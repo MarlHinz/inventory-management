@@ -799,7 +799,7 @@ export default {
 
 .kpi-progress {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--chart-1), var(--highlight));
   border-radius: 2px;
   transition: width 0.6s ease;
 }
